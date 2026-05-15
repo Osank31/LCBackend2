@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    "target": "ES2020",
+
+    "types": ["node"],
+
+    "strict": true,
+    "esModuleInterop": true,
+
+    "skipLibCheck": true
+  }
+}
