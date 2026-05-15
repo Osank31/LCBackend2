@@ -12,6 +12,8 @@ export interface IProblem extends Document {
     difficulty: "Easy" | "Medium" | "Hard";
     testCases: Array<ITestCase>
     editorial: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const testCaseSchema = new mongoose.Schema<ITestCase>({
