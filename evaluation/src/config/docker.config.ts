@@ -16,7 +16,7 @@ async function ensureImage(image: string) {
 
                 docker.modem.followProgress(
                     stream,
-                    (err2) => {
+                    (err2: any) => {
                         if (err2) reject(err2);
                         else resolve(true);
                     }
@@ -71,19 +71,16 @@ export async function runCode(
         throw new Error("Unsupported language");
     }
 
-    // Ensure image exists
     await ensureImage(config.image);
 
-    // Build shell command
-    const commandParts = [
+    const shellCommand = [
         "mkdir -p /app",
         config.compile,
         `echo "$INPUT" | ${config.run}`,
-    ].filter(Boolean);
+    ]
+        .filter(Boolean)
+        .join(" && ");
 
-    const shellCommand = commandParts.join(" && ");
-
-    // Create container
     const container = await docker.createContainer({
         Image: config.image,
 
@@ -99,77 +96,45 @@ export async function runCode(
         AttachStderr: true,
 
         HostConfig: {
-            AutoRemove: true,
+            AutoRemove: false, 
 
             Memory: 256 * 1024 * 1024,
-
-            NanoCpus: 1_000_000_000, // 1 CPU
-
+            NanoCpus: 1_000_000_000,
             NetworkMode: "none",
-
             ReadonlyRootfs: false,
-
             PidsLimit: 64,
         },
     });
 
-    // Create tar archive
+    // Copy code into container
     const pack = tar.pack();
 
-    pack.entry(
-        {
-            name: config.filename,
-        },
-        code
-    );
-
+    pack.entry({ name: config.filename }, code);
     pack.finalize();
 
-    // Copy source file into container
-    await container.putArchive(pack, {
-        path: "/app",
-    });
+    await container.putArchive(pack, { path: "/app" });
 
-    // Start container
-    await container.start();
+    try {
+        await container.start();
+        await container.wait();
 
-    // Wait until container exits
-    await container.wait();
+        const logBuffer = await container.logs({
+            stdout: true,
+            stderr: true,
+            follow: false,
+        });
 
-    // Fetch logs
-    const logStream = await container.logs({
-        stdout: true,
-        stderr: true,
-        follow: false,
-    });
+        const output = Buffer.isBuffer(logBuffer)
+            ? logBuffer.toString("utf-8")
+            : String(logBuffer);
 
-    return logStream.toString("utf-8");
+        return output.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+
+    } finally {
+        try {
+            await container.remove({ force: true });
+        } catch (err) {
+            console.error("Container cleanup failed:", err);
+        }
+    }
 }
-
-// Example usage
-// (async () => {
-//     const code = `
-// #include <iostream>
-// using namespace std;
-
-// int main() {
-//     int n;
-//     cin >> n;
-
-//     cout << n * 10;
-
-//     return 0;
-// }
-// `;
-
-//     const input = `5`;
-
-//     try {
-//         const result = await runCpp(code, input);
-
-//         console.log("Program Output:");
-//         console.log(result);
-//     } catch (err) {
-//         console.error("Error:", err);
-//     }
-// })();

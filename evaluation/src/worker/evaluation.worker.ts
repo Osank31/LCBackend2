@@ -23,8 +23,17 @@ export const startWorker = async () => {
         const evaluationData: IEvaluationData = JSON.parse(`${Buffer.from(data?.content)}`)
         channel.ack(data)
 
-        const result = await runCode(languageMap[evaluationData.language], evaluationData.code, evaluationData.problemData.testCases[0].input)
+        let results=[]
 
-        console.log(result)
+        for(let i=0; i<evaluationData.problemData.testCases.length; i++) {
+            const result = await runCode(languageMap[evaluationData.language], evaluationData.code, evaluationData.problemData.testCases[i].input)
+
+            results.push({
+                input: evaluationData.problemData.testCases[i].input,
+                output: result
+            });
+        }
+        console.log(results)
+
     })
 }
