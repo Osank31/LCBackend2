@@ -15,7 +15,6 @@ export const createSubmissionService = async (data: CreateSubmissionInput) => {
     if (!mongoose.Types.ObjectId.isValid(problemId)) {
         throw new BadRequestError("Invalid problem id")
     }
-    // console.log("here")
 
     
     const problemDataResponse = await axios.get(`${PROBLEM_SERVICE_URL}/api/v1/problems/${problemId}`)
@@ -24,7 +23,7 @@ export const createSubmissionService = async (data: CreateSubmissionInput) => {
         throw new NotFoundError("Problem not found")
     }
 
-    const problemData = problemDataResponse.data
+    const problemData = problemDataResponse.data.data
 
     channel.sendToQueue(queue, Buffer.from(JSON.stringify({
         problemData,
