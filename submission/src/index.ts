@@ -18,6 +18,7 @@ app.use(appErrorHandler);
 app.use(genericErrorHandler);
 
 connectToQueue()
+dbConnect()
 
 app.listen(APP_PORT || 3000, async ()=>{
     logger.info(`Server running on port ${APP_PORT || 3000}`)

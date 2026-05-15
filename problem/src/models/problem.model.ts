@@ -54,7 +54,6 @@ const problemSchema = new mongoose.Schema<IProblem>({
     editorial: {
         type: String,
         enum: ["Easy", "Medium", "Hard"],
-        required: [true, "Editorial is required"],
     },
     testCases: [testCaseSchema]
 }, {

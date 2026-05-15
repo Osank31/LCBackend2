@@ -5,8 +5,8 @@ import { createSubmissionService } from "../services/submission.service";
 
 export const createSubmission = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log("Submission created")
         const validatedData = createSubmissionSchema.parse(req.body)
-
         const submission = await createSubmissionService(validatedData);
 
         return sendSuccess(res, submission, "Submission created successfully", 201)

@@ -17,7 +17,7 @@ export const createProblemSchema = z.object({
 
   editorial: z
     .string()
-    .min(10, "Editorial must be at least 10 characters"),
+    .min(10, "Editorial must be at least 10 characters").optional(),
 
   testCases: z
     .array(testCaseSchema)
