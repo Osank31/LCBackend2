@@ -3,25 +3,18 @@ import "dotenv/config"
 import { APP_PORT } from "./constants/constants"
 import { appErrorHandler, genericErrorHandler } from "./middleware/errorHandler"
 import logger from "./config/logger.config"
-import { dbConnect } from "./config/db.config"
-import cookieParser from "cookie-parser"
-import userRouter from "./router/user.router"
-import { redisConnect } from "./config/redis.config"
+import mailRouter from "./routes/mail.route"
 
 const app = express()
 
 app.use(express.json())
-app.use(cookieParser())
 
-
-app.use("/api/v1/users", userRouter)
+app.use(mailRouter)
 
 
 app.use(appErrorHandler);
 app.use(genericErrorHandler);
 
-dbConnect()
-redisConnect()
 
 
 app.listen(APP_PORT || 3000, ()=>{
