@@ -2,11 +2,30 @@ import axios from "axios"
 import { getRedisClient } from "../config/redis.config"
 import User from "../models/user.model"
 import { mailTemplate } from "../templates/mail.template"
-import { ForbiddenError, InternalServerError, NotFoundError, UnauthorizedError } from "../utils/errors/AppError"
+import { ConflictError, ForbiddenError, InternalServerError, NotFoundError, UnauthorizedError } from "../utils/errors/AppError"
 import otpGenerator from "otp-generator"
 import { ACCESS_TOKEN_JWT_KEY, MAIL_SERVICE_URL, REFRESH_TOKEN_JWT_KEY } from "../constants/constants"
 import { LoginUserInput, registerUserSchema, type RegisterUserInput } from "../validation/auth.validation"
-import jwt from "jsonwebtoken"
+import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken"
+import mongoose from "mongoose"
+
+export interface IReloadToken {
+    refreshToken: string
+}
+
+export interface IRefreshToken {
+    userId: string
+}
+
+export interface IAccessToken {
+    email: string;
+    name: string;
+    userId: mongoose.Types.ObjectId;
+}
+
+export interface ILogoutData {
+    refreshToken: string;
+}
 
 export const sendEmail = async (data: { email: string }) => {
     const { email } = data
@@ -62,11 +81,15 @@ export const signUp = async (data: (RegisterUserInput & { otp: string })) => {
         throw new NotFoundError("Otp not found")
     }
 
+    if (latestOtp !== otp) {
+        throw new ConflictError("Wrong Otp")
+    }
+
     const newUser = await User.create({
         email, password, name
     });
 
-    const payload = {
+    const payload: IAccessToken = {
         email, name, userId: newUser._id
     }
 
@@ -104,7 +127,7 @@ export const login = async (data: LoginUserInput) => {
         throw new UnauthorizedError("Password not matched")
     }
 
-    const payload = {
+    const payload: IAccessToken = {
         email,
         name: user.name,
         userId: user._id
@@ -112,8 +135,8 @@ export const login = async (data: LoginUserInput) => {
 
     const accessToken = jwt.sign(payload, ACCESS_TOKEN_JWT_KEY, { expiresIn: "15min" })
     const refreshToken = jwt.sign({ userId: user._id }, REFRESH_TOKEN_JWT_KEY, { expiresIn: "7d" })
-    
-    const redisClient=getRedisClient()
+
+    const redisClient = getRedisClient()
     await redisClient.set(`session:${payload.userId}`, refreshToken, { EX: 7 * 24 * 60 * 60 })
 
     const userObj: {
@@ -128,4 +151,62 @@ export const login = async (data: LoginUserInput) => {
     }
 
     return userObj
+}
+
+export const reloadToken = async (data: IReloadToken) => {
+    const { refreshToken } = data
+
+    const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_JWT_KEY) as IRefreshToken
+
+    const {userId} = decoded
+
+    const redisClient = getRedisClient()
+
+    const storedToken = await redisClient.get(`session:${userId}`)
+
+    if (!storedToken || storedToken !== refreshToken) {
+        throw new ForbiddenError("Session expired")
+    }
+
+    const user = await User.findById(userId)
+
+    if (!user){
+        throw new NotFoundError("User not found")
+    }
+
+    const payload = {
+        email: user.email,
+        name: user.name,
+        userId: user._id
+    }
+
+    const accessToken = jwt.sign(payload, ACCESS_TOKEN_JWT_KEY, {
+        expiresIn: "15min"
+    })
+
+    const newRefreshToken = jwt.sign({ userId: payload.userId }, REFRESH_TOKEN_JWT_KEY, {
+        expiresIn: "7d"
+    })
+
+    await redisClient.set(`session:${payload.userId}`, newRefreshToken, {
+        EX: 7 * 24 * 60 * 60
+    })
+
+    return { accessToken, newRefreshToken }
+}
+
+export const logout = async (data: ILogoutData) => {
+    const refreshToken = data.refreshToken
+
+    const decoded: any = jwt.verify(refreshToken, REFRESH_TOKEN_JWT_KEY)
+
+    const { userId } = decoded
+
+    const redisClient = getRedisClient()
+
+    await redisClient.del(`session:${userId}`)
+
+    await redisClient.set(`blacklist:${userId}`, "true", {
+        EX: 7*24*60*60
+    })
 }

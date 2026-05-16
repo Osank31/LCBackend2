@@ -2,13 +2,14 @@ import { CookieOptions, NextFunction, Request, Response } from "express"
 import { loginUserSchema, registerUserSchema } from "../validation/auth.validation"
 import { sendSuccess } from "../utils/Response"
 import * as AuthService from '../service/auth.service'
-import { BadRequestError } from "../utils/errors/AppError"
+import * as PasswordService from '../service/password.service'
+import { BadRequestError, ForbiddenError, UnauthorizedError } from "../utils/errors/AppError"
 
 export const sendEmail = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const validatedData = registerUserSchema.parse(req.body)
     
-        const {name, email, password} = validatedData
+        const {email} = validatedData
     
         const newOtp = await AuthService.sendEmail({email})
     
@@ -69,12 +70,94 @@ export const login = async (req: Request, res: Response, next: NextFunction)=>{
     }
 }
 
-export const forgetPassword = async (req: Request, res: Response, next: NextFunction)=>{}
+export const forgetPassword = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const {email} = req.body
 
-export const forgotPasswordVerifyOtp = async (req: Request, res: Response, next: NextFunction)=>{}
+        if (!email){
+            throw new BadRequestError("Email not found in forgetPassword")
+        }
+        
+        await PasswordService.forgotPassword({email})
 
-export const resetPassword = async (req: Request, res: Response, next: NextFunction)=>{}
+        sendSuccess(res, null, "Otp Generated Successfully", 201)
+    } catch (error) {
+        next(error)
+    }
+}
 
-export const refrshToken = async (req: Request, res: Response, next: NextFunction)=>{}
+export const forgotPasswordVerifyOtp = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const {email, otp} = req.body
 
-export const logout = async (req: Request, res: Response, next: NextFunction)=>{}
+        if(!email || !otp) {
+            throw new BadRequestError("email or otp not found in forgotPasswordVerifyOtp")
+        }
+
+        const updatedUser = await PasswordService.forgotPasswordVerifyOtp({email, otp})
+
+        sendSuccess(res, updatedUser, "Token generated successfully", 201)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const {password, token} = req.body
+
+        if (!password || !token) {
+            throw new BadRequestError("Password or token not found")
+        }
+
+        const updatedUser = await PasswordService.resetPassword({password, token})
+
+        sendSuccess(res, updatedUser, "Password reset succkessfully", 201)
+    } catch (error) {
+        next(error)        
+    }
+}
+
+export const reloadToken = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const refreshToken: string = req.cookies?.refreshToken
+
+        if (!refreshToken) {
+            throw new UnauthorizedError("Refresh token not found")
+        }
+
+        const tokens = await AuthService.reloadToken({refreshToken})
+
+        const cookieOptions: CookieOptions = {
+            expires: new Date(Date.now() + 7*24*60*60),
+            httpOnly: true
+        }
+
+        res.cookie("refreshToken", tokens.newRefreshToken, cookieOptions).status(201).json({
+            success: true,
+            message: "Tokens reloaded successfully",
+            data: tokens.accessToken
+        });
+        
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const logout = async (req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const refreshToken = req.cookies?.refreshToken
+
+        if (!refreshToken) {
+            throw new BadRequestError("Refresh token not found")
+        }
+
+        await AuthService.logout({refreshToken})
+
+        res.clearCookie("refreshToken")
+
+        sendSuccess(res, null, "Logout successful")
+    } catch (error) {
+        next(error)
+    }
+}

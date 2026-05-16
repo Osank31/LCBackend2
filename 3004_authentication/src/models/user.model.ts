@@ -9,6 +9,8 @@ interface IUser {
     name: string;
     email: string;
     password: string;
+    resetPasswordToken: string;
+    resetTokenExpiry: string;
 }
 
 interface IUserMethods {
@@ -38,6 +40,12 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
             required: true,
             minlength: 6,
         },
+        resetPasswordToken: {
+            type: String,
+        },
+        resetTokenExpiry: {
+            type: String,
+        }
     },
     {
         timestamps: true,
