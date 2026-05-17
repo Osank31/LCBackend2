@@ -48,7 +48,7 @@ export const sendEmail = async (data: { email: string }) => {
 
     const mailData = {
         email,
-        from: "Leetcode",
+        from: "osankverma2004@gmail.com",
         subject: "For OTP verification",
         body: mailTemplate(newOtp)
     }

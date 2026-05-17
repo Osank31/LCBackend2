@@ -1,5 +1,5 @@
 import { CookieOptions, NextFunction, Request, Response } from "express"
-import { loginUserSchema, registerUserSchema } from "../validation/auth.validation"
+import { loginUserSchema, registerUserSchema, sendMailSchema, updateUserSchema } from "../validation/auth.validation"
 import { sendSuccess } from "../utils/Response"
 import * as AuthService from '../service/auth.service'
 import * as PasswordService from '../service/password.service'
@@ -7,13 +7,13 @@ import { BadRequestError, ForbiddenError, UnauthorizedError } from "../utils/err
 
 export const sendEmail = async (req: Request, res: Response, next: NextFunction)=>{
     try {
-        const validatedData = registerUserSchema.parse(req.body)
+        const validatedData = sendMailSchema.parse(req.body)
     
         const {email} = validatedData
     
         const newOtp = await AuthService.sendEmail({email})
     
-        sendSuccess(res, null, "otp sent successfully")
+        sendSuccess(res, null, "Otp generated successfully", 201)
     } catch (error) {
         next(error)
     }

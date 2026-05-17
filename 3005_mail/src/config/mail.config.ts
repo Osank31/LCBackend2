@@ -6,12 +6,14 @@ export const createTransporter = () => {
     const user = MAIL_USER
     const pass = MAIL_PASSWORD
 
+    console.log({user, pass})
+
     if (!user || !pass) {
         throw new InternalServerError("Mail user or pass not found")
     }
 
     return nodemailer.createTransport({
-        host: "smtp.google.com",
+        host: "smtp.gmail.com",
         port: 587,
         secure: false,
         auth: {

@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const sendMailSchema = z.object({
+    email: z
+        .string()
+        .trim()
+        .toLowerCase()
+        .email("Invalid email address"),
+})
+
 export const registerUserSchema = z.object({
     name: z
         .string()

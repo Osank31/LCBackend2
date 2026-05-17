@@ -9,6 +9,7 @@ export interface IMailData {
 
 export const sendMail = async (data: IMailData) => {
     const transporter = createTransporter()
+    
 
     return transporter.sendMail({
         from: data.from,
@@ -16,4 +17,5 @@ export const sendMail = async (data: IMailData) => {
         subject: data.subject,
         html: data.body
     })
+
 }

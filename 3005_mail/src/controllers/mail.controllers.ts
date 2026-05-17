@@ -8,7 +8,8 @@ export const sendMail = async (req: Request, res: Response, next: NextFunction) 
     try {
         const validatedData = MailDataSchema.parse(req.body)
         const {email, from, subject, body} = validatedData as MailService.IMailData
-
+        
+        
         const mailSendService = await MailService.sendMail({email, from, body, subject})
 
         sendSuccess(res, mailSendService, "Mail sent successfully", 200)
