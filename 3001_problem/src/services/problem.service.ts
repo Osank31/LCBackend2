@@ -7,8 +7,10 @@ import {
     NotFoundError,
     NotImplementedError,
 } from "../utils/errors/AppError";
+import { createProblemType } from "../validations/problem.validation";
+import { createEmbedding } from "../utils/openai.embedding";
 
-export const createProblemService = async (data: any) => {
+export const createProblemService = async (data: createProblemType) => {
     return await Problem.create(data);
 };
 
@@ -68,13 +70,27 @@ export const searchProblemsService = async (query: string) => {
     if (!query || query.trim() === "") {
         throw new BadRequestError("Invalid Query");
     }
+    const queryEmbedding = await createEmbedding(query)
 
-    const regex = new RegExp(query, "i");
-
-    return await Problem.find({
-        $or: [
-            { title: { $regex: regex } },
-            { description: { $regex: regex } },
-        ],
-    }).sort({ createdAt: -1 });
+    const results = await Problem.aggregate([
+        {
+            $vectorSearch: {
+                index: "vector_index",
+                path: "embedding",
+                queryVector: queryEmbedding,
+                numCandidates: 100,
+                limit: 10
+            }
+        },
+        {
+            $project: {
+                title: 1,
+                description: 1,
+                difficulty: 1,
+                editorial: 1,
+                score: { $meta: "vectorSearchScore" }
+            }
+        }
+    ]);
+    return results
 };

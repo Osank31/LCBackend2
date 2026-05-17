@@ -25,3 +25,5 @@ export const createProblemSchema = z.object({
 });
 
 export const updateProblemSchema = createProblemSchema.partial();
+
+export type createProblemType = z.infer<typeof createProblemSchema>
