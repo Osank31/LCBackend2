@@ -116,9 +116,11 @@ export const startWorker = async () => {
                             ESubmissionStatus.Accepted;
                     }
 
+                    // console.log(results)
+
                     try {
                         const response = await axios.put(
-                            `http://localhost:3002/api/v1/${evaluationData.submissionId}`,
+                            `http://localhost:3002/api/v1/submission/${evaluationData.submissionId}`,
                             {
                                 problemId:
                                     evaluationData.problemData._id,
