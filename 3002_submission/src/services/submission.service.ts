@@ -1,4 +1,4 @@
-import { CreateSubmissionInput } from "../validations/submission.validation";
+import { CreateSubmissionInput, UpdateSubmissionInput } from "../validations/submission.validation";
 import {channel, queue} from "../config/rabbitMQ.config"
 import { BadRequestError, InternalServerError, NotFoundError } from "../utils/errors/AppError";
 import axios from "axios";
@@ -33,7 +33,7 @@ export const evaluationService = async (data: CreateSubmissionInput) => {
 
     const problemData = problemDataResponse.data.data
 
-    channel.sendToQueue(queue, Buffer.from(JSON.stringify({
+    channel.sendToQueue(queue.submissionCreated, Buffer.from(JSON.stringify({
         problemData,
         code,
         language,
@@ -42,4 +42,17 @@ export const evaluationService = async (data: CreateSubmissionInput) => {
     })));
 
     return;
+}
+
+export const updateSubmission = async (data: UpdateSubmissionInput & {submissionId:String}) => {
+    const {problemId, code, language, status, submissionId} = data
+
+    const submission = await Submission.findByIdAndUpdate(submissionId, {
+        problemId,
+        code,
+        language,
+        status
+    }, {new: true})
+
+    return submission
 }

@@ -1,3 +1,5 @@
+import { Document } from "mongoose";
+
 export interface ITestCase {
     input: string;
     output: string;
@@ -11,6 +13,8 @@ export enum ELanguage {
 export enum ESubmissionStatus {
     Pending = "Pending",
     Accepted = "Accepted",
+    Rejected = "Rejected",
+    Error = "Error"
 }
 
 export interface IProblem extends Document {

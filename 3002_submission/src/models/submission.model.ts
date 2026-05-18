@@ -8,6 +8,8 @@ export enum ELanguage {
 export enum ESubmissionStatus {
     Pending = "Pending",
     Accepted = "Accepted",
+    Rejected = "Rejected",
+    Error = "Error"
 }
 
 export interface ISubmissionSchema extends Document {

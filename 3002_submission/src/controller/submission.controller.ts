@@ -1,16 +1,39 @@
 import { NextFunction, Request, Response } from "express";
-import { createSubmissionSchema } from "../validations/submission.validation";
+import { createSubmissionSchema, updateSubmissionSchema } from "../validations/submission.validation";
 import { sendSuccess } from "../utils/Response";
-import { evaluationService } from "../services/submission.service";
+import * as SubmissionService from "../services/submission.service";
+import { BadRequestError } from "../utils/errors/AppError";
 
 export const createEvaluation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log("Submission created")
         const validatedData = createSubmissionSchema.parse(req.body)
-        const submission = await evaluationService(validatedData);
+        const submission = await SubmissionService.evaluationService(validatedData);
 
         return sendSuccess(res, submission, "Submission created successfully", 201)
     } catch (error) {
-        
+        next(error)
+    }
+}
+
+export const updateSubmission = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {submissionId} = req.params
+        const {problemId, code, language, status} = updateSubmissionSchema.parse(req.body)
+
+        if (!submissionId) {
+            throw new BadRequestError("Submission Id is required")
+        }
+
+        const submission = await SubmissionService.updateSubmission({
+            problemId,
+            code,
+            language,
+            status,
+            submissionId: (submissionId as string)
+        });
+
+        sendSuccess(res, submission, "Submission updated successfully")
+    } catch (error) {
+        next(error)
     }
 }

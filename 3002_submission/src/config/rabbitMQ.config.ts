@@ -7,7 +7,10 @@ export interface QueueConnection {
 }
 
 let channel: Channel;
-let queue = "submission-queue";
+let queue = {
+    submissionCreated: "submission.created",
+    submissionCompleted: "submission.completed"
+};
 
 export async function connectToQueue() {
     try {
@@ -17,9 +20,7 @@ export async function connectToQueue() {
 
         channel = await connection.createChannel();
 
-        await channel.assertQueue(queue, {
-            durable: true,
-        });
+        await channel.assertQueue(queue.submissionCreated);
 
         logger.info("Connected to RabbitMQ")
     } catch (error) {
