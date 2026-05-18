@@ -4,8 +4,9 @@ import { BadRequestError, InternalServerError, NotFoundError } from "../utils/er
 import axios from "axios";
 import { PROBLEM_SERVICE_URL } from "../constants/constants";
 import mongoose from "mongoose";
+import Submission, { ESubmissionStatus } from "../models/submission.model";
 
-export const createSubmissionService = async (data: CreateSubmissionInput) => {
+export const evaluationService = async (data: CreateSubmissionInput) => {
     const {problemId, code, language, status} = data
     
     if (!channel || !queue) {
@@ -15,6 +16,13 @@ export const createSubmissionService = async (data: CreateSubmissionInput) => {
     if (!mongoose.Types.ObjectId.isValid(problemId)) {
         throw new BadRequestError("Invalid problem id")
     }
+
+    const submission = await Submission.insertOne({
+        problemId,
+        code,
+        language,
+        status: ESubmissionStatus.Pending
+    });
 
     
     const problemDataResponse = await axios.get(`${PROBLEM_SERVICE_URL}/api/v1/problems/${problemId}`)
@@ -29,7 +37,8 @@ export const createSubmissionService = async (data: CreateSubmissionInput) => {
         problemData,
         code,
         language,
-        status
+        status,
+        submissionId: submission._id,
     })));
 
     return;

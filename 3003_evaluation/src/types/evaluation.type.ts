@@ -28,4 +28,5 @@ export interface IEvaluationData {
     code: string;
     language: ELanguage;
     status: ESubmissionStatus;
+    submissionId: string
 }

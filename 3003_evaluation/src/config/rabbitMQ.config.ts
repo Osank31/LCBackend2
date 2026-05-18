@@ -1,4 +1,4 @@
-import amqplib, { Channel, ConsumeMessage } from "amqplib";
+import amqplib, { Channel } from "amqplib";
 import logger from "./logger.config";
 
 export interface QueueConnection {

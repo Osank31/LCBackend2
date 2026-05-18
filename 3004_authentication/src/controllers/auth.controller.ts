@@ -3,7 +3,7 @@ import { loginUserSchema, registerUserSchema, sendMailSchema, updateUserSchema }
 import { sendSuccess } from "../utils/Response"
 import * as AuthService from '../service/auth.service'
 import * as PasswordService from '../service/password.service'
-import { BadRequestError, ForbiddenError, UnauthorizedError } from "../utils/errors/AppError"
+import { BadRequestError, UnauthorizedError } from "../utils/errors/AppError"
 
 export const sendEmail = async (req: Request, res: Response, next: NextFunction)=>{
     try {
@@ -11,7 +11,7 @@ export const sendEmail = async (req: Request, res: Response, next: NextFunction)
     
         const {email} = validatedData
     
-        const newOtp = await AuthService.sendEmail({email})
+        await AuthService.sendEmail({email})
     
         sendSuccess(res, null, "Otp generated successfully", 201)
     } catch (error) {

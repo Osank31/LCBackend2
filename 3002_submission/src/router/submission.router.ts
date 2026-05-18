@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { createSubmission } from "../controller/submission.controller";
+import { createEvaluation } from "../controller/submission.controller";
 
 const router = Router()
 
-router.post("/", createSubmission)
+router.post("/", createEvaluation)
 
 export default router
