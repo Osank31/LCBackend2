@@ -11,7 +11,7 @@ const app = express()
 
 app.use(express.json())
 
-app.use("/api/v1/submission", submissionRouter)
+app.use("/", submissionRouter)
 
 
 app.use(appErrorHandler);

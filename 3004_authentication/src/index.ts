@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 
-app.use("/api/v1/users", userRouter)
+app.use("/", userRouter)
 
 
 app.use(appErrorHandler);
