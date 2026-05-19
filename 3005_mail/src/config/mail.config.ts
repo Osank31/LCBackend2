@@ -1,12 +1,13 @@
 import nodemailer from "nodemailer"
 import { MAIL_PASSWORD, MAIL_USER } from "../constants/constants"
 import { InternalServerError } from "../utils/errors/AppError"
+import logger from "./logger.config"
 
 export const createTransporter = () => {
     const user = MAIL_USER
     const pass = MAIL_PASSWORD
 
-    console.log({user, pass})
+    logger.error({user, pass})
 
     if (!user || !pass) {
         throw new InternalServerError("Mail user or pass not found")

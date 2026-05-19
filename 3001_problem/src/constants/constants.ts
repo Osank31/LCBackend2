@@ -1,3 +1,13 @@
-export const APP_PORT = process.env.PORT!
-export const MONGODB_URL = process.env.MONGODB_URL!
-export const OPENAI_API_KEY=process.env.OPENAI_API_KEY!
+function getEnvVariable(name: string, required = true): string {
+  const value = process.env[name]
+
+  if (required && (!value || value.trim() === "")) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+
+  return value || ""
+}
+
+export const APP_PORT = getEnvVariable("PORT")
+export const MONGODB_URL = getEnvVariable("MONGODB_URL")
+export const OPENAI_API_KEY=getEnvVariable("OPENAI_API_KEY")

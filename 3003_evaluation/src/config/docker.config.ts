@@ -1,14 +1,15 @@
 import Docker from "dockerode";
 import tar from "tar-stream";
+import logger from "./logger.config";
 
 const docker = new Docker();
 
 async function ensureImage(image: string) {
     try {
         await docker.getImage(image).inspect();
-        console.log(`Image already exists: ${image}`);
+        logger.error(`Image already exists: ${image}`);
     } catch {
-        console.log(`Pulling image: ${image}...`);
+        logger.error(`Pulling image: ${image}...`);
 
         await new Promise((resolve, reject) => {
             docker.pull(image, (err: any, stream: any) => {
@@ -24,7 +25,7 @@ async function ensureImage(image: string) {
             });
         });
 
-        console.log(`Image pulled successfully: ${image}`);
+        logger.error(`Image pulled successfully: ${image}`);
     }
 }
 

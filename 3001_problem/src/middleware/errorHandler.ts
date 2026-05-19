@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { AppError } from "../utils/errors/AppError";
+import logger from "../config/logger.config"
 
 export const appErrorHandler = (err: AppError, req: Request, res: Response, next: NextFunction) => {
 
-    console.log(err);
+    logger.error(err);
 
     if (err instanceof ZodError) {
         res.status(400).json({
@@ -25,7 +26,7 @@ export const appErrorHandler = (err: AppError, req: Request, res: Response, next
 }
 
 export const genericErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.log(err);
+    logger.error(err);
 
     res.status(500).json({
         success: false,

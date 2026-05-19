@@ -6,10 +6,12 @@ import logger from "./config/logger.config"
 import proxy from "express-http-proxy"
 import { loginValidation } from "./middleware/auth.middleware"
 import { sendError } from "./utils/Response"
+import cookieParser from 'cookie-parser'
 
 const app = express()
 
 app.use(express.json())
+app.use(cookieParser())
 
 const authProxy = proxy("http://localhost:3004", {
     proxyReqPathResolver: (req) => {
@@ -59,7 +61,6 @@ const problemProxy = proxy("http://localhost:3001", {
         next(err)
     }
 })
-
 const submissionProxy = proxy("http://localhost:3002", {
     proxyReqPathResolver: (req) => {
         return req.originalUrl.replace("/api/v1/submission", "")
@@ -84,9 +85,15 @@ const submissionProxy = proxy("http://localhost:3002", {
     }
 })
 
+app.get("/api/v1/problems", problemProxy)
+app.get("/api/v1/problems/:id", problemProxy)
+app.post("/api/v1/problems", loginValidation, problemProxy)
+app.put("/api/v1/problems/:id", loginValidation, problemProxy)
+app.delete("/api/v1/problems/:id", loginValidation, problemProxy)
+
 app.use("/api/v1/auth", authProxy)
-app.use("/api/v1/problems",loginValidation, problemProxy)
-app.use("/api/v1/submission", submissionProxy)
+
+app.use("/api/v1/submission", loginValidation, submissionProxy)
 
 
 app.use(appErrorHandler);

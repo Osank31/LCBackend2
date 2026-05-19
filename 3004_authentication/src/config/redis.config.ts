@@ -13,7 +13,7 @@ export const redisConnect = async () => {
     });
 
     client.on('error', (err: Error) => {
-        console.log('Redis Client Error', err);
+        logger.error('Redis Client Error', err);
     });
 
     await client.connect();
