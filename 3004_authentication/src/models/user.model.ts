@@ -9,6 +9,7 @@ interface IUser {
     name: string;
     email: string;
     password: string;
+    profilePicUrl?: string;
     resetPasswordToken: string;
     resetTokenExpiry: string;
 }
@@ -39,6 +40,9 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
             type: String,
             required: true,
             minlength: 6,
+        },
+        profilePicUrl: {
+            type: String,
         },
         resetPasswordToken: {
             type: String,

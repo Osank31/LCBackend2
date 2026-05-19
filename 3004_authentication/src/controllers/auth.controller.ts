@@ -23,13 +23,13 @@ export const signUp = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const validatedData = registerUserSchema.parse(req.body)
     
-        const {name, email, password, otp} = validatedData
+        const {name, email, password, otp, profilePicUrl} = validatedData
         
         if(!otp){
             throw new BadRequestError("Otp required")
         }
     
-        const newUser = await AuthService.signUp({name, email, password, otp})
+        const newUser = await AuthService.signUp({name, email, password, otp, profilePicUrl})
     
         const cookieOptions: CookieOptions = {
             expires: new Date(Date.now() + 7*24*60*60*1000),

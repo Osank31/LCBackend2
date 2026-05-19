@@ -63,7 +63,7 @@ export const sendEmail = async (data: { email: string }) => {
 }
 
 export const signUp = async (data: (RegisterUserInput & { otp: string })) => {
-    const { name, email, password, otp } = data
+    const { name, email, password, otp, profilePicUrl } = data
 
     const isUserRegistered = await User.findOne({
         email
@@ -86,7 +86,7 @@ export const signUp = async (data: (RegisterUserInput & { otp: string })) => {
     }
 
     const newUser = await User.create({
-        email, password, name
+        email, password, name, profilePicUrl
     });
 
     const payload: IAccessToken = {
