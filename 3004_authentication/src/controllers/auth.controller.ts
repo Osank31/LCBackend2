@@ -136,7 +136,9 @@ export const reloadToken = async (req: Request, res: Response, next: NextFunctio
         res.cookie("refreshToken", tokens.newRefreshToken, cookieOptions).status(201).json({
             success: true,
             message: "Tokens reloaded successfully",
-            data: tokens.accessToken
+            data: {
+                accessToken: tokens.accessToken
+            }
         });
         
     } catch (error) {

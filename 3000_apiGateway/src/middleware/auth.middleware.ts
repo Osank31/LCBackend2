@@ -6,10 +6,12 @@ export const loginValidation = async (req: Request, res: Response, next: NextFun
         const token=(req.headers.authorization?.startsWith("Bearer ") ? 
             (req.headers.authorization?.split(" ")[1]) : (req.cookies?.accessToken || req.body))
         
-        const verifyToken = jwt.verify(token, ACCESS_TOKEN_JWT_KEY)
+        const decoded = jwt.verify(token, ACCESS_TOKEN_JWT_KEY)
 
-        req.user = verifyToken
+        console.log(decoded)
 
+        req.user = decoded
+        
         next()
     } catch (error) {
         next(error)

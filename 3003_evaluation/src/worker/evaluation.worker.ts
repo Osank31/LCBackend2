@@ -120,7 +120,7 @@ export const startWorker = async () => {
 
                     try {
                         const response = await axios.put(
-                            `http://localhost:3002/api/v1/submission/${evaluationData.submissionId}`,
+                            `http://localhost:3002/${evaluationData.submissionId}`,
                             {
                                 problemId:
                                     evaluationData.problemData._id,

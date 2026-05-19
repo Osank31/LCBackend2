@@ -25,7 +25,7 @@ export const evaluationService = async (data: CreateSubmissionInput) => {
     });
 
     
-    const problemDataResponse = await axios.get(`${PROBLEM_SERVICE_URL}/api/v1/problems/${problemId}`)
+    const problemDataResponse = await axios.get(`http://localhost:3001/${problemId}`)
 
     if (!problemDataResponse?.data?.success) {
         throw new NotFoundError("Problem not found")
