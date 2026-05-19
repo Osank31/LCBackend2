@@ -16,6 +16,7 @@ export interface ISubmissionSchema extends Document {
     problemId: string;
     code: string;
     language: ELanguage;
+    userId: string;
     status: ESubmissionStatus;
     createdAt: Date;
     updatedAt: Date;
@@ -38,6 +39,11 @@ const submissionSchema = new mongoose.Schema<ISubmissionSchema>(
             enum: Object.values(ELanguage),
             default: ELanguage.cpp,
             required: true,
+        },
+
+        userId: {
+            type: String,
+            required: [true, "userId required"]
         },
 
         status: {

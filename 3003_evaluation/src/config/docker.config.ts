@@ -7,9 +7,9 @@ const docker = new Docker();
 async function ensureImage(image: string) {
     try {
         await docker.getImage(image).inspect();
-        logger.error(`Image already exists: ${image}`);
+        logger.info(`Image already exists: ${image}`);
     } catch {
-        logger.error(`Pulling image: ${image}...`);
+        logger.info(`Pulling image: ${image}...`);
 
         await new Promise((resolve, reject) => {
             docker.pull(image, (err: any, stream: any) => {
@@ -25,7 +25,7 @@ async function ensureImage(image: string) {
             });
         });
 
-        logger.error(`Image pulled successfully: ${image}`);
+        logger.info(`Image pulled successfully: ${image}`);
     }
 }
 
@@ -128,7 +128,6 @@ export async function runCode(
         const output = Buffer.isBuffer(logBuffer)
             ? logBuffer.toString("utf-8")
             : String(logBuffer);
-
         return output.replace(/[\u0000-\u001F\u007F]/g, "").trim();
 
     } finally {

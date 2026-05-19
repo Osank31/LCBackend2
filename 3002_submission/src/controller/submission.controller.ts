@@ -2,12 +2,18 @@ import { NextFunction, Request, Response } from "express";
 import { createSubmissionSchema, updateSubmissionSchema } from "../validations/submission.validation";
 import { sendSuccess } from "../utils/Response";
 import * as SubmissionService from "../services/submission.service";
-import { BadRequestError } from "../utils/errors/AppError";
+import { BadRequestError, UnauthorizedError } from "../utils/errors/AppError";
 
 export const createEvaluation = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const userId = req.user?.userId
+
+        if(!userId) {
+            throw new UnauthorizedError("User not found")
+        }
+
         const validatedData = createSubmissionSchema.parse(req.body)
-        const submission = await SubmissionService.evaluationService(validatedData);
+        const submission = await SubmissionService.evaluationService({...validatedData, userId});
 
         return sendSuccess(res, submission, "Submission created successfully", 201)
     } catch (error) {

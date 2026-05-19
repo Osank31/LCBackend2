@@ -6,8 +6,8 @@ import { PROBLEM_SERVICE_URL } from "../constants/constants";
 import mongoose from "mongoose";
 import Submission, { ESubmissionStatus } from "../models/submission.model";
 
-export const evaluationService = async (data: CreateSubmissionInput) => {
-    const {problemId, code, language, status} = data
+export const evaluationService = async (data: CreateSubmissionInput & {userId: string}) => {
+    const {problemId, code, language, status, userId} = data
     
     if (!channel || !queue) {
         throw new InternalServerError("Rabbit Mq chnnel or queue not found")
@@ -21,7 +21,8 @@ export const evaluationService = async (data: CreateSubmissionInput) => {
         problemId,
         code,
         language,
-        status: ESubmissionStatus.Pending
+        status: ESubmissionStatus.Pending,
+        userId
     });
 
     

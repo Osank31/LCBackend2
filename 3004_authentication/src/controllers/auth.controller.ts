@@ -32,7 +32,7 @@ export const signUp = async (req: Request, res: Response, next: NextFunction)=>{
         const newUser = await AuthService.signUp({name, email, password, otp})
     
         const cookieOptions: CookieOptions = {
-            expires: new Date(Date.now() + 7*24*60*60),
+            expires: new Date(Date.now() + 7*24*60*60*1000),
             httpOnly: true
         }
     
@@ -56,7 +56,7 @@ export const login = async (req: Request, res: Response, next: NextFunction)=>{
         const user = await AuthService.login({email, password})
 
         const cookieOptions: CookieOptions = {
-            expires: new Date(Date.now() + 7*24*60*60),
+            expires: new Date(Date.now() + 7*24*60*60*1000),
             httpOnly: true
         }
 
@@ -129,7 +129,7 @@ export const reloadToken = async (req: Request, res: Response, next: NextFunctio
         const tokens = await AuthService.reloadToken({refreshToken})
 
         const cookieOptions: CookieOptions = {
-            expires: new Date(Date.now() + 7*24*60*60),
+            expires: new Date(Date.now() + 7*24*60*60*1000),
             httpOnly: true
         }
 

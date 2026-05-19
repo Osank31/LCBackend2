@@ -49,11 +49,7 @@ export const startWorker = async () => {
                     const results = [];
                     let errorFlag = false;
 
-                    for (
-                        let i = 0;
-                        i < evaluationData.problemData.testCases.length;
-                        i++
-                    ) {
+                    for (let i = 0; i < evaluationData.problemData.testCases.length;i++) {
                         const currentTestCase =
                             evaluationData.problemData.testCases[i];
 
@@ -106,6 +102,9 @@ export const startWorker = async () => {
                         }
                     }
 
+                    // console.log("Results",results)
+                    // console.log("ErrorFlag",errorFlag)
+
                     let submissionStatus: ESubmissionStatus;
 
                     if (errorFlag) {
@@ -116,7 +115,6 @@ export const startWorker = async () => {
                             ESubmissionStatus.Accepted;
                     }
 
-                    // console.log(results)
 
                     try {
                         const response = await axios.put(

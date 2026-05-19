@@ -20,7 +20,7 @@ const authProxy = proxy("http://localhost:3004", {
 
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
-            proxyReqOpts.headers["user"] = JSON.stringify(srcReq.user)
+            proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
         }
         return proxyReqOpts
     },
@@ -44,7 +44,7 @@ const problemProxy = proxy("http://localhost:3001", {
     
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
-            proxyReqOpts.headers["user"] = JSON.stringify(srcReq.user)
+            proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
         }
         return proxyReqOpts
     },
@@ -67,7 +67,7 @@ const submissionProxy = proxy("http://localhost:3002", {
     },
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
-            proxyReqOpts.headers["user"] = JSON.stringify(srcReq.user)
+            proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
         }
         return proxyReqOpts
     },
