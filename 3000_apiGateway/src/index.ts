@@ -7,11 +7,13 @@ import proxy from "express-http-proxy"
 import { loginValidation } from "./middleware/auth.middleware"
 import { sendError } from "./utils/Response"
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
 const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use(cors())
 
 const authProxy = proxy("http://localhost:3004", {
     proxyReqPathResolver: (req) => {
