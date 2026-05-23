@@ -149,7 +149,7 @@ io.on("connection", (socket) => {
 // Connect to RabbitMQ and consume completed submissions
 async function connectToRabbitMQ() {
     try {
-        const connection = await amqplib.connect("amqp://localhost")
+        const connection = await amqplib.connect(process.env.RABBITMQ_URL || "amqp://localhost")
         const channel = await connection.createChannel()
         const queueName = "submission.completed"
 

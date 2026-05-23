@@ -15,7 +15,7 @@ let queue = {
 export async function connectToQueue() {
     try {
         const connection = await amqplib.connect(
-            "amqp://localhost"
+            process.env.RABBITMQ_URL || "amqp://localhost"
         );
 
         channel = await connection.createChannel();
