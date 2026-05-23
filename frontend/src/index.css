@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Enforce global constraints on every element to satisfy USER rules absolutely */
+  * {
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    @apply bg-darkBg text-[#f3f4f6] font-sans antialiased selection:bg-brandBlue/30 selection:text-white;
+    background-color: #09090b;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Custom scrollbar for an elegant premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #09090b;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #202023;
+    border: 2px solid #09090b;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2e2e33;
+  }
+
+  /* Code block styles */
+  code, pre {
+    @apply font-mono;
+  }
+}
+
+/* Custom inputs without rounded corners and with focus states matching our theme */
+input, select, textarea {
+  @apply bg-darkBg border border-darkBorder px-3 py-2 text-sm text-[#f3f4f6] transition-colors duration-150 ease-in-out outline-none;
+}
+
+input:focus, select:focus, textarea:focus {
+  @apply border-brandBlue;
+}
+
+/* Flat button designs */
+.btn-flat {
+  @apply px-4 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-150 ease-in-out border outline-none cursor-pointer;
+}
+
+.btn-flat-primary {
+  @apply bg-brandBlue text-white border-brandBlue hover:bg-[#2563eb] hover:border-[#2563eb];
+}
+
+.btn-flat-secondary {
+  @apply bg-darkPanel text-[#f3f4f6] border-darkBorder hover:bg-darkHeader hover:text-white;
+}
+
+.btn-flat-success {
+  @apply bg-brandGreen text-white border-brandGreen hover:bg-[#059669] hover:border-[#059669];
+}
+
+.btn-flat-danger {
+  @apply bg-brandRed text-white border-brandRed hover:bg-[#dc2626] hover:border-[#dc2626];
+}

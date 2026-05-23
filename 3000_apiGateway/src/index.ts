@@ -1,6 +1,6 @@
 import express, {Response, NextFunction} from "express"
 import "dotenv/config"
-import { APP_PORT } from "./constants/constants"
+import { APP_PORT, AUTH_SERVICE_URL, PROBLEM_SERVICE_URL, SUBMISSION_SERVICE_URL } from "./constants/constants"
 import { appErrorHandler, genericErrorHandler } from "./middleware/errorHandler"
 import logger from "./config/logger.config"
 import proxy from "express-http-proxy"
@@ -8,6 +8,14 @@ import { loginValidation } from "./middleware/auth.middleware"
 import { sendError } from "./utils/Response"
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import { createServer } from "http"
+import { Server } from "socket.io"
+import amqplib from "amqplib"
+import path from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 
@@ -15,7 +23,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(cors())
 
-const authProxy = proxy("http://localhost:3004", {
+const authProxy = proxy(AUTH_SERVICE_URL, {
     proxyReqPathResolver: (req) => {
         return req.originalUrl.replace("/api/v1/auth", "")
     },
@@ -39,7 +47,7 @@ const authProxy = proxy("http://localhost:3004", {
         next(err)
     }
 })
-const problemProxy = proxy("http://localhost:3001", {
+const problemProxy = proxy(PROBLEM_SERVICE_URL, {
     proxyReqPathResolver: (req) => {
         return req.originalUrl.replace("/api/v1/problems", "")
     },
@@ -63,7 +71,7 @@ const problemProxy = proxy("http://localhost:3001", {
         next(err)
     }
 })
-const submissionProxy = proxy("http://localhost:3002", {
+const submissionProxy = proxy(SUBMISSION_SERVICE_URL, {
     proxyReqPathResolver: (req) => {
         return req.originalUrl.replace("/api/v1/submission", "")
     },
@@ -101,8 +109,95 @@ app.use("/api/v1/submission", loginValidation, submissionProxy)
 app.use(appErrorHandler);
 app.use(genericErrorHandler);
 
+// Create HTTP server wrapping Express
+const server = createServer(app)
 
+// Initialize Socket.io
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+})
 
-app.listen(APP_PORT || 3000, () => {
+const userSockets = new Map<string, Set<string>>()
+
+io.on("connection", (socket) => {
+    const userId = socket.handshake.query.userId as string
+    if (userId) {
+        if (!userSockets.has(userId)) {
+            userSockets.set(userId, new Set())
+        }
+        userSockets.get(userId)!.add(socket.id)
+        logger.info(`WebSocket: User ${userId} connected on socket ${socket.id}`)
+    }
+
+    socket.on("disconnect", () => {
+        if (userId) {
+            const sockets = userSockets.get(userId)
+            if (sockets) {
+                sockets.delete(socket.id)
+                if (sockets.size === 0) {
+                    userSockets.delete(userId)
+                }
+            }
+            logger.info(`WebSocket: User ${userId} disconnected from socket ${socket.id}`)
+        }
+    })
+})
+
+// Connect to RabbitMQ and consume completed submissions
+async function connectToRabbitMQ() {
+    try {
+        const connection = await amqplib.connect("amqp://localhost")
+        const channel = await connection.createChannel()
+        const queueName = "submission.completed"
+
+        await channel.assertQueue(queueName)
+        logger.info(`Connected to RabbitMQ and asserted queue: ${queueName}`)
+
+        channel.consume(queueName, (msg) => {
+            if (msg !== null) {
+                try {
+                    const messageContent = JSON.parse(msg.content.toString())
+                    logger.info(`Received submission.completed event: ${JSON.stringify(messageContent)}`)
+
+                    const { userId, submissionId, problemId, status, results, failedTestCase } = messageContent
+
+                    if (userId) {
+                        const sockets = userSockets.get(userId)
+                        if (sockets && sockets.size > 0) {
+                            for (const socketId of sockets) {
+                                io.to(socketId).emit("submissionCompleted", {
+                                    submissionId,
+                                    problemId,
+                                    status,
+                                    results,
+                                    failedTestCase
+                                })
+                            }
+                            logger.info(`Dispatched submissionCompleted socket event to user ${userId}`)
+                        } else {
+                            logger.warn(`No active WebSocket connection for user ${userId}`)
+                        }
+                    } else {
+                        logger.warn("Received submission.completed event with no userId")
+                    }
+
+                    channel.ack(msg)
+                } catch (consumeError: any) {
+                    logger.error("Error processing submission.completed message", consumeError)
+                    channel.nack(msg, false, false)
+                }
+            }
+        })
+    } catch (error: any) {
+        logger.error("Failed to connect to RabbitMQ in API Gateway", error)
+        setTimeout(connectToRabbitMQ, 5000)
+    }
+}
+
+server.listen(APP_PORT || 3000, () => {
     logger.info(`Server running on port ${APP_PORT || 3000}`)
+    connectToRabbitMQ()
 })

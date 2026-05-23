@@ -20,7 +20,13 @@ export const loginValidation = async (req: Request, res: Response, next: NextFun
         req.user = decoded
         
         next()
-    } catch (error) {
+    } catch (error: any) {
+        if (error.name === "TokenExpiredError") {
+            return next(new UnauthorizedError("Token expired"));
+        }
+        if (error.name === "JsonWebTokenError") {
+            return next(new UnauthorizedError("Invalid token"));
+        }
         next(error)
     }
 }

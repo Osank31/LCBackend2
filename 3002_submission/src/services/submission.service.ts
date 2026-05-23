@@ -17,7 +17,7 @@ export const evaluationService = async (data: CreateSubmissionInput & {userId: s
         throw new BadRequestError("Invalid problem id")
     }
 
-    const submission = await Submission.insertOne({
+    const submission = await Submission.create({
         problemId,
         code,
         language,
@@ -26,7 +26,7 @@ export const evaluationService = async (data: CreateSubmissionInput & {userId: s
     });
 
     
-    const problemDataResponse = await axios.get(`http://localhost:3001/${problemId}`)
+    const problemDataResponse = await axios.get(`${PROBLEM_SERVICE_URL}/${problemId}`)
 
     if (!problemDataResponse?.data?.success) {
         throw new NotFoundError("Problem not found")
@@ -40,9 +40,10 @@ export const evaluationService = async (data: CreateSubmissionInput & {userId: s
         language,
         status,
         submissionId: submission._id,
+        userId,
     })));
 
-    return;
+    return submission;
 }
 
 export const updateSubmission = async (data: UpdateSubmissionInput & {submissionId:String}) => {

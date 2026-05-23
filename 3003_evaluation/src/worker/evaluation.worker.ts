@@ -1,5 +1,6 @@
 import { ConsumeMessage } from "amqplib";
 import axios from "axios";
+import { SUBMISSION_SERVICE_URL } from "../constants/constants";
 
 import logger from "../config/logger.config";
 import { channel, queue } from "../config/rabbitMQ.config";
@@ -118,7 +119,7 @@ export const startWorker = async () => {
 
                     try {
                         const response = await axios.put(
-                            `http://localhost:3002/${evaluationData.submissionId}`,
+                            `${SUBMISSION_SERVICE_URL}/${evaluationData.submissionId}`,
                             {
                                 problemId:
                                     evaluationData.problemData._id,
@@ -150,6 +151,7 @@ export const startWorker = async () => {
                                         evaluationData.problemData._id,
                                     status:
                                         ESubmissionStatus.Error,
+                                    userId: evaluationData.userId,
                                 })
                             )
                         );
@@ -171,6 +173,7 @@ export const startWorker = async () => {
                                 failedTestCase: errorFlag
                                     ? results[results.length - 1]
                                     : null,
+                                userId: evaluationData.userId,
                             })
                         )
                     );

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { forgetPassword, forgotPasswordVerifyOtp, login, logout, reloadToken, resetPassword, sendEmail, signUp } from "../controllers/auth.controller";
-import { getPresignedUrl } from "../controllers/profile.contoroller";
+// import { getPresignedUrl } from "../controllers/profile.contoroller";
 
 const router = Router()
 
@@ -13,6 +13,6 @@ router.put("/reset-password", resetPassword)
 router.post("/reload-token", reloadToken)
 router.post("/logout", logout)
 
-router.post("/presigned-url", getPresignedUrl)
+// router.post("/presigned-url", getPresignedUrl)
 
 export default router
