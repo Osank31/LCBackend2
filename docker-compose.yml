@@ -32,8 +32,8 @@ services:
       - "3005:3005"
     environment:
       - PORT=3005
-      - MAIL_USER=osankverma2004@gmail.com
-      - MAIL_PASSWORD=ceghsomgutnmhiya
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
 
   auth-service:
     build:
@@ -47,15 +47,15 @@ services:
       redis:
         condition: service_healthy
     environment:
-      - PORT=3004
-      - MONGODB_URL=mongodb+srv://osankverma2004_db_user:osank123@cluster0.vdn6bos.mongodb.net/?appName=Cluster0
-      - MAIL_SERVICE_URL=http://mail-service:3005/api/v1
-      - ACCESS_TOKEN_JWT_KEY=kuchbhi
-      - REFRESH_TOKEN_JWT_KEY=kuchbhi
-      - AWS_ACCESS_KEY=AKIAUN3LM4PBR6A5XF2E
-      - AWS_SECRET_ACCESS_KEY=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
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - PORT=${AUTH_SERVICE_PORT}
+      - MONGODB_URL=${MONGODB_URL}
+      - MAIL_SERVICE_URL=${MAIL_SERVICE_URL}
+      - ACCESS_TOKEN_JWT_KEY=${ACCESS_TOKEN_JWT_KEY}
+      - REFRESH_TOKEN_JWT_KEY=${REFRESH_TOKEN_JWT_KEY}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
 
   problem-service:
     build:
@@ -64,10 +64,10 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - PORT=3001
-      - MONGODB_URL=mongodb+srv://osankverma2004_db_user:osank123@cluster0.vdn6bos.mongodb.net/?appName=Cluster0
-      - SUBMISSION_PORT=3002
-      - OPENAI_API_KEY=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
+      - PORT=${PROBLEM_SERVICE_PORT}
+      - MONGODB_URL=${MONGODB_URL}
+      - SUBMISSION_PORT=${SUBMISSION_SERVICE_PORT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
 
   submission-service:
     build:
@@ -81,10 +81,10 @@ services:
       problem-service:
         condition: service_started
     environment:
-      - PORT=3002
-      - MONGODB_URL=mongodb+srv://osankverma2004_db_user:osank123@cluster0.vdn6bos.mongodb.net/?appName=Cluster0
-      - PROBLEM_URL=http://problem-service:3001
-      - RABBITMQ_URL=amqp://rabbitmq
+      - PORT=${SUBMISSION_SERVICE_PORT}
+      - MONGODB_URL=${MONGODB_URL}
+      - PROBLEM_URL=${PROBLEM_SERVICE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
 
   evaluation-service:
     build:
@@ -100,9 +100,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - PORT=3003
-      - SUBMISSION_URL=http://submission-service:3002
-      - RABBITMQ_URL=amqp://rabbitmq
+      - PORT=${EVALUATION_SERVICE_PORT}
+      - SUBMISSION_URL=${SUBMISSION_SERVICE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
 
   api-gateway:
     build:
@@ -120,10 +120,10 @@ services:
       submission-service:
         condition: service_started
     environment:
-      - PORT=3000
-      - ACCESS_TOKEN_JWT_KEY=kuchbhi
-      - REFRESH_TOKEN_JWT_KEY=kuchbhi
-      - AUTH_SERVICE_URL=http://auth-service:3004
-      - PROBLEM_SERVICE_URL=http://problem-service:3001
-      - SUBMISSION_SERVICE_URL=http://submission-service:3002
-      - RABBITMQ_URL=amqp://rabbitmq
+      - PORT=${API_GATEWAY_PORT}
+      - ACCESS_TOKEN_JWT_KEY=${ACCESS_TOKEN_JWT_KEY}
+      - REFRESH_TOKEN_JWT_KEY=${REFRESH_TOKEN_JWT_KEY}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - PROBLEM_SERVICE_URL=${PROBLEM_SERVICE_URL}
+      - SUBMISSION_SERVICE_URL=${SUBMISSION_SERVICE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
