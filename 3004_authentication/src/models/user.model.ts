@@ -2,16 +2,26 @@ import mongoose, {
     Schema,
     HydratedDocument,
     Model,
+    Document
 } from "mongoose";
 import bcrypt from "bcrypt";
 
-interface IUser {
+export enum UserType {
+    Regular = "Regular",
+    Admin = "Admin",
+    Premium = "Premium",
+}
+
+interface IUser extends Document {
     name: string;
     email: string;
     password: string;
     profilePicUrl?: string;
+    userType: UserType;
     resetPasswordToken: string;
     resetTokenExpiry: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 interface IUserMethods {
@@ -43,6 +53,12 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
         },
         profilePicUrl: {
             type: String,
+        },
+        userType: {
+            type: String,
+            enum: Object.values(UserType),
+            default: UserType.Regular,
+            required: true,
         },
         resetPasswordToken: {
             type: String,

@@ -92,6 +92,31 @@ const submissionProxy = proxy(SUBMISSION_SERVICE_URL, {
     }
 })
 
+const paymentProxy = proxy(SUBMISSION_SERVICE_URL, {
+    proxyReqPathResolver: (req) => {
+        return req.originalUrl.replace("/api/v1/payment", "")
+    },
+    proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
+        if (srcReq.user) {
+            proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
+        }
+        return proxyReqOpts
+    },
+    proxyErrorHandler(err, res: Response, next: NextFunction) {
+        logger.error("submission service error", err.message)
+
+        if (!res.headersSent) {
+            if (err.code  === "ECONNREFUSED" ) {
+                return sendError(res, "submission service unavailable", 503)
+            }
+
+            return sendError(res, "Internal Proxy Error", 500)
+        }
+        next(err)
+    }
+})
+
+
 app.get("/api/v1/problems", problemProxy)
 app.get("/api/v1/problems/:id", problemProxy)
 app.post("/api/v1/problems", loginValidation, problemProxy)
@@ -101,6 +126,7 @@ app.delete("/api/v1/problems/:id", loginValidation, problemProxy)
 app.use("/api/v1/auth", authProxy)
 
 app.use("/api/v1/submission", loginValidation, submissionProxy)
+app.use("/api/v1/payment", loginValidation, paymentProxy)
 
 
 app.use(appErrorHandler);

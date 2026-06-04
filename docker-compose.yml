@@ -104,6 +104,18 @@ services:
       - SUBMISSION_URL=${SUBMISSION_SERVICE_URL}
       - RABBITMQ_URL=${RABBITMQ_URL}
 
+  payment-service:
+    build:
+      context: ./3006_payment
+    container_name: lc-payment-service
+    ports:
+      - "3006:3006"
+    environment:
+      - PORT=${PAYMENT_SERVICE_PORT}
+      - NEON_DB_URL=${NEON_DB_URL}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+
   api-gateway:
     build:
       context: ./3000_apiGateway
