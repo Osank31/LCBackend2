@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { verifyPayment } from "../api/api.service";
 
 declare global {
 	interface Window {
@@ -42,38 +41,34 @@ export default function RazorpayCheckout({ order, onClose }: Props) {
 
 			const options = {
 				key: import.meta.env.VITE_RAZORPAY_KEY_ID as string,
+
+				order_id: order.orderId,
 				amount: order.amount,
 				currency: order.currency,
+
 				name: "Test Store",
-				order_id: order.orderId,
+				description: "Payment Checkout",
 
-				handler: async (response: {
-					razorpay_payment_id: string;
-					razorpay_order_id: string;
-					razorpay_signature: string;
-				}) => {
-					console.log("Payment Success:", response);
+				// ⚠️ No backend verification call here anymore
+				handler: (response: any) => {
+					console.log("Payment completed:", response);
 
-					try {
-						await verifyPayment({
-							orderId: response.razorpay_order_id,
-							paymentId: response.razorpay_payment_id,
-							signature: response.razorpay_signature,
-						});
+					// You can optionally show UI message
+					alert("Payment successful! Processing your order...");
 
-						alert("Payment Successful");
-					} catch (err) {
-						console.error("Verification failed", err);
-					}
-
+					// Backend webhook will handle final confirmation
 					onClose();
 				},
 
 				modal: {
 					ondismiss: () => {
-						console.log("Payment closed");
+						console.log("Payment modal closed");
 						onClose();
 					},
+				},
+
+				theme: {
+					color: "#3399cc",
 				},
 			};
 

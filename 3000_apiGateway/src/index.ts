@@ -11,8 +11,6 @@ import cors from 'cors'
 import { createServer } from "http"
 import { Server } from "socket.io"
 import amqplib from "amqplib"
-import path from "path"
-import { fileURLToPath } from "url"
 
 const app = express()
 

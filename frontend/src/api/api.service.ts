@@ -110,14 +110,15 @@ api.interceptors.response.use(
 
 export const serverBaseUrl = "http://localhost:3006"; // change if needed
 
-export const createOrder = (amount: number) => {
-	return axios.post(`${serverBaseUrl}/order`, {
+export const createOrder = (amount: number, currency: string) => {
+	return api.post(`${serverBaseUrl}/order`, {
 		amount: amount * 100, // INR paise
+		currency
+	}, {
+		headers: {
+			"x-user-id": "6a2a776c94d18b118abdc22c",
+		}
 	});
-};
-
-export const verifyPayment = (data: any) => {
-	return axios.post(`${serverBaseUrl}/paymentCapture`, data);
 };
 
 export default api;
