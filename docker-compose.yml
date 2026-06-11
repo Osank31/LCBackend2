@@ -120,6 +120,18 @@ services:
       - SUBMISSION_URL=${SUBMISSION_SERVICE_URL}
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 
+  payment-service:
+    build:
+      context: ./3006_payment
+    container_name: lc-payment-service
+    ports:
+      - "3006:3006"
+    environment:
+      - PORT=${PAYMENT_SERVICE_PORT}
+      - NEON_DB_URL=${NEON_DB_URL}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+
   api-gateway:
     build:
       context: ./3000_apiGateway
@@ -141,6 +153,7 @@ services:
       - REFRESH_TOKEN_JWT_KEY=${REFRESH_TOKEN_JWT_KEY}
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
       - PROBLEM_SERVICE_URL=${PROBLEM_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
       - SUBMISSION_SERVICE_URL=${SUBMISSION_SERVICE_URL}
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 
