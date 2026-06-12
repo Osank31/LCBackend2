@@ -130,7 +130,8 @@ app.delete("/api/v1/problems/:id", loginValidation, problemProxy)
 app.use("/api/v1/auth", authProxy)
 
 app.use("/api/v1/submission", loginValidation, submissionProxy)
-app.use("/api/v1/payment", loginValidation, paymentProxy)
+app.post("/api/v1/payment/order", loginValidation, paymentProxy)
+app.post("/api/v1/payment/webhooks/razorpay/paymentCapture", paymentProxy)
 
 
 app.use(appErrorHandler);

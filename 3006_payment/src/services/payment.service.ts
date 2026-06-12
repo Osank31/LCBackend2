@@ -70,6 +70,8 @@
 import {razorpay} from "../config/razorypay.config";
 import {Orders} from "razorpay/dist/types/orders";
 import {InternalServerError} from "../utils/errors/AppError";
+import {RazorpayWebhookEvent} from "../controllers/payment.controller";
+import {prisma} from "../config/db.condfig";
 
 export interface OrderOptions {
     amount: number;
@@ -93,4 +95,51 @@ export const createOrder = async (options: Orders.RazorpayOrderCreateRequestBody
         currency: response.currency,
         receipt: response.receipt,
     }
+}
+
+export const verifyPayment = async (data: RazorpayWebhookEvent) => {
+    if (!data.payload.payment?.entity) {
+        throw new InternalServerError("Payment does not exist");
+    }
+
+    console.log("here")
+
+    const razorpayPaymentId = data.payload.payment.entity.id
+
+    const isExist = await prisma.payment.findUnique({
+        where: {
+            razorpayPaymentId
+        }
+    });
+
+    if (isExist) {
+        return
+    }
+
+
+    await prisma.payment.create({
+        data: {
+            razorpayPaymentId,
+            razorpayOrderId: data.payload.payment.entity.order_id,
+            razorpayInvoiceId: data.payload.payment.entity.invoice_id || null,
+
+            amount: data.payload.payment.entity.amount,
+            currency: data.payload.payment.entity.currency,
+            status: data.payload.payment.entity.status,
+            captured: data.payload.payment.entity.captured,
+
+            method: data.payload.payment.entity.method,
+            international: data.payload.payment.entity.international,
+            amountRefunded: data.payload.payment.entity.amount_refunded,
+            refundStatus: data.payload.payment.entity.refund_status,
+
+            email: data.payload.payment.entity.email,
+            contact: data.payload.payment.entity.contact,
+
+            description: data.payload.payment.entity.description,
+            notes: data.payload.payment.entity.notes,
+
+            paymentCreatedAt: new Date(data.created_at * 1000)
+        }
+    })
 }

@@ -9,6 +9,7 @@ import {sendSuccess} from "../utils/Response";
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log("order created");
         const options: OrderOptions = {
             amount: req.body.amount,
             currency: req.body.currency || ("INR"),
@@ -32,7 +33,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 export interface RazorpayWebhookEvent {
     entity: "event";
     account_id: string;
-    event: string; // e.g. "payment.captured"
+    event: string; // e.g. "payment.captured" || "payment.failed"
     contains: string[];
     payload: {
         payment?: {
@@ -72,9 +73,14 @@ export interface RazorpayPaymentEntity {
 }
 
 export const paymentCapture = async (req: Request, res: Response, next: NextFunction) => {
-    const data = req.body as RazorpayWebhookEvent;
+    try{
+        console.log("payment capture");
+        const data = req.body as RazorpayWebhookEvent;
 
-    console.log(JSON.stringify(data, null, 4));
+        await PaymentService.verifyPayment(data)
 
-    sendSuccess(res, null, "Payment Captured Successfully", 200);
+        sendSuccess(res, null, "Payment Captured Successfully", 200);
+    } catch (e) {
+        next(e);
+    }
 }
