@@ -10,6 +10,7 @@ import {
 	ListCollapse,
 } from "lucide-react";
 import api from "../api/api.service";
+import RazorpayButton from "./RazorpayButton";
 
 const Navbar: React.FC = () => {
 	const { user, logout } = useAuth();
@@ -59,6 +60,12 @@ const Navbar: React.FC = () => {
 						<Plus size={14} />
 						<span>NEW PROBLEM</span>
 					</Link>
+				)}
+				
+				{user && (
+					<div className="flex items-center">
+						<RazorpayButton />
+					</div>
 				)}
 			</div>
 

@@ -11,12 +11,13 @@ export default function RazorpayButton() {
 
 	const handlePayment = async () => {
 		try {
-			const res = await createOrder(100);
+			console.log("Order created")
+			const res = await createOrder(100, "INR");
 
 			console.log(res);
 
 			setOrder({
-				orderId: res.data.data.order_id,
+				orderId: res.data.data.razorPayId,
 				amount: res.data.data.amount,
 				currency: res.data.data.currency,
 			});

@@ -27,6 +27,7 @@ const Login: React.FC = () => {
 
 			if (response.data?.success && response.data?.data) {
 				const { accessToken, ...userProfile } = response.data.data;
+				console.log(response.data.data);
 				login(userProfile, accessToken);
 				navigate("/problems");
 			} else {

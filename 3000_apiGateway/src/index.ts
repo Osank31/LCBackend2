@@ -1,6 +1,12 @@
 import express, {Response, NextFunction} from "express"
 import "dotenv/config"
-import { APP_PORT, AUTH_SERVICE_URL, PROBLEM_SERVICE_URL, SUBMISSION_SERVICE_URL } from "./constants/constants"
+import {
+    APP_PORT,
+    AUTH_SERVICE_URL,
+    PAYMENT_SERVICE_URL,
+    PROBLEM_SERVICE_URL,
+    SUBMISSION_SERVICE_URL
+} from "./constants/constants"
 import { appErrorHandler, genericErrorHandler } from "./middleware/errorHandler"
 import logger from "./config/logger.config"
 import proxy from "express-http-proxy"
@@ -11,8 +17,6 @@ import cors from 'cors'
 import { createServer } from "http"
 import { Server } from "socket.io"
 import amqplib from "amqplib"
-import path from "path"
-import { fileURLToPath } from "url"
 
 const app = express()
 
@@ -92,7 +96,7 @@ const submissionProxy = proxy(SUBMISSION_SERVICE_URL, {
     }
 })
 
-const paymentProxy = proxy(SUBMISSION_SERVICE_URL, {
+const paymentProxy = proxy(PAYMENT_SERVICE_URL, {
     proxyReqPathResolver: (req) => {
         return req.originalUrl.replace("/api/v1/payment", "")
     },
@@ -103,11 +107,11 @@ const paymentProxy = proxy(SUBMISSION_SERVICE_URL, {
         return proxyReqOpts
     },
     proxyErrorHandler(err, res: Response, next: NextFunction) {
-        logger.error("submission service error", err.message)
+        logger.error("submission service error", err)
 
         if (!res.headersSent) {
             if (err.code  === "ECONNREFUSED" ) {
-                return sendError(res, "submission service unavailable", 503)
+                return sendError(res, "Payment service unavailable", 503)
             }
 
             return sendError(res, "Internal Proxy Error", 500)
@@ -126,7 +130,8 @@ app.delete("/api/v1/problems/:id", loginValidation, problemProxy)
 app.use("/api/v1/auth", authProxy)
 
 app.use("/api/v1/submission", loginValidation, submissionProxy)
-app.use("/api/v1/payment", loginValidation, paymentProxy)
+app.post("/api/v1/payment/order", loginValidation, paymentProxy)
+app.post("/api/v1/payment/webhooks/razorpay/paymentCapture", paymentProxy)
 
 
 app.use(appErrorHandler);

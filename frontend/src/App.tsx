@@ -98,14 +98,3 @@ function App() {
 }
 
 export default App;
-
-// import RazorpayButton from "./components/RazorpayButton";
-//
-// export default function App() {
-//     return (
-//         <div>
-//             <h1>Razorpay Test Frontend</h1>
-//             <RazorpayButton />
-//         </div>
-//     );
-// }

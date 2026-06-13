@@ -1,6 +1,15 @@
-version: '3.8'
-
 services:
+  mongodb:
+    image: mongo:latest
+    container_name: lc-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=mydb
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: lc-rabbitmq
@@ -46,16 +55,18 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+      mongodb:
+        condition: service_started
     environment:
       - PORT=${AUTH_SERVICE_PORT}
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/mydb
       - MAIL_SERVICE_URL=${MAIL_SERVICE_URL}
       - ACCESS_TOKEN_JWT_KEY=${ACCESS_TOKEN_JWT_KEY}
       - REFRESH_TOKEN_JWT_KEY=${REFRESH_TOKEN_JWT_KEY}
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
   problem-service:
     build:
@@ -63,9 +74,12 @@ services:
     container_name: lc-problem-service
     ports:
       - "3001:3001"
+    depends_on:
+      mongodb:
+        condition: service_started
     environment:
       - PORT=${PROBLEM_SERVICE_PORT}
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/mydb
       - SUBMISSION_PORT=${SUBMISSION_SERVICE_PORT}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
 
@@ -80,11 +94,13 @@ services:
         condition: service_healthy
       problem-service:
         condition: service_started
+      mongodb:
+        condition: service_started
     environment:
       - PORT=${SUBMISSION_SERVICE_PORT}
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/mydb
       - PROBLEM_URL=${PROBLEM_SERVICE_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 
   evaluation-service:
     build:
@@ -102,7 +118,7 @@ services:
     environment:
       - PORT=${EVALUATION_SERVICE_PORT}
       - SUBMISSION_URL=${SUBMISSION_SERVICE_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 
   payment-service:
     build:
@@ -115,6 +131,7 @@ services:
       - NEON_DB_URL=${NEON_DB_URL}
       - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
       - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - DIRECT_URL=${DIRECT_URL}
 
   api-gateway:
     build:
@@ -137,5 +154,9 @@ services:
       - REFRESH_TOKEN_JWT_KEY=${REFRESH_TOKEN_JWT_KEY}
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
       - PROBLEM_SERVICE_URL=${PROBLEM_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
       - SUBMISSION_SERVICE_URL=${SUBMISSION_SERVICE_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+
+volumes:
+  mongodb_data:
