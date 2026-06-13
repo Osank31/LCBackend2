@@ -107,11 +107,11 @@ const paymentProxy = proxy(PAYMENT_SERVICE_URL, {
         return proxyReqOpts
     },
     proxyErrorHandler(err, res: Response, next: NextFunction) {
-        logger.error("submission service error", err.message)
+        logger.error("submission service error", err)
 
         if (!res.headersSent) {
             if (err.code  === "ECONNREFUSED" ) {
-                return sendError(res, "submission service unavailable", 503)
+                return sendError(res, "Payment service unavailable", 503)
             }
 
             return sendError(res, "Internal Proxy Error", 500)
