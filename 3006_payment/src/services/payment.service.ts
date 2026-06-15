@@ -1,93 +1,35 @@
-// import {razorpay} from "../config/razorypay.config";
-// import {OrderOptions} from "../controllers/payment.controller";
-// import {InternalServerError} from "../utils/errors/AppError";
-// import crypto from "crypto"
-// import {RAZORPAY_KEY_SECRET} from "../constants/constants";
-// import {prisma} from "../config/db.condfig";
-//
-// export enum PaymentStatus {
-//     completed = "completed",
-//     pending = "pending",
-//     failed = "failed",
-//     refunded = "refunded",
-// }
-//
-//
-// export const createOrder = async (options: OrderOptions, userId: string) => {
-//     const response = await razorpay.orders.create(options);
-//
-//     if (!response || !response.id || !response.currency || !response.amount) {
-//         throw new InternalServerError("Order creation error from razorpay");
-//     }
-//
-//     // TODO: Add into Prisma DB
-//     const order = await prisma.payment.create({
-//         data: {
-//             amount: response.amount,
-//             currency: response.currency,
-//             status: "pending",
-//             userId: userId,
-//             transactionId: response.id
-//         }
-//     })
-//
-//     return {
-//         order_id: response.id,
-//         currency: response.currency,
-//         amount: response.amount,
-//         userId,
-//         paymentId: order.id
-//     }
-// }
-//
-// export const confirmPayment = async (orderId: string, paymentId: string, signature: string, userId: string) => {
-//
-//     const body = orderId + "|" + paymentId;
-//
-//     const expectedSignature = crypto
-//         .createHmac("sha256", RAZORPAY_KEY_SECRET)
-//         .update(body)
-//         .digest("hex");
-//
-//
-//     if (expectedSignature === signature) {
-//         // TODO: Update Prisma DB with payment confirmed and Mongo DB
-//         const payment = await prisma.payment.update({
-//             where: {
-//                 id: paymentId,
-//             },
-//             data: {
-//                 status: PaymentStatus.completed,
-//             },
-//         });
-//         return true;
-//     }
-//     return false;
-//
-// }
-
-
 import {razorpay} from "../config/razorypay.config";
 import {Orders} from "razorpay/dist/types/orders";
 import {InternalServerError} from "../utils/errors/AppError";
 import {RazorpayWebhookEvent} from "../controllers/payment.controller";
 import {prisma} from "../config/db.condfig";
 
+
 export interface OrderOptions {
-    amount: number;
+    planId: string;
     currency: string;
     receipt: string;
     payment_capture: 0 | 1;
 }
 
-export const createOrder = async (options: Orders.RazorpayOrderCreateRequestBody | Orders.RazorpayTransferCreateRequestBody | Orders.RazorpayAuthorizationCreateRequestBody) => {
+export const createOrder = async (options: Orders.RazorpayOrderCreateRequestBody | Orders.RazorpayTransferCreateRequestBody | Orders.RazorpayAuthorizationCreateRequestBody, userId: string, planId: string) => {
     const response = await razorpay.orders.create(options)
-
-    // console.log(response)
 
     if (!response || !response.id || !response.amount || !response.currency) {
         throw new InternalServerError("Order creation error from razorpay");
     }
+
+    await prisma.order.create({
+        data: {
+            userId,
+            planId,
+            razorpayOrderId: response.id,
+            amount: Number(response.amount),
+            currency: response.currency,
+
+            receipt: response.receipt,
+        }
+    });
 
     return {
         razorPayId: response.id,
@@ -97,12 +39,24 @@ export const createOrder = async (options: Orders.RazorpayOrderCreateRequestBody
     }
 }
 
-export const verifyPayment = async (data: RazorpayWebhookEvent) => {
+
+export const paymentCapture = (razorpay_order_id: string, razorpay_payment_id: string) => {
+    return prisma.order.update({
+        where: {
+            razorpayOrderId: razorpay_order_id
+        },
+        data: {
+            razorpayPaymentId: razorpay_payment_id,
+            status: "PAID",
+            paidAt: new Date(Date.now())
+        }
+    });
+}
+
+export const paymentWebhookCapture = async (data: RazorpayWebhookEvent) => {
     if (!data.payload.payment?.entity) {
         throw new InternalServerError("Payment does not exist");
     }
-
-    console.log("here")
 
     const razorpayPaymentId = data.payload.payment.entity.id
 
@@ -117,7 +71,20 @@ export const verifyPayment = async (data: RazorpayWebhookEvent) => {
     }
 
 
-    await prisma.payment.create({
+    const order_plan_Data = await prisma.order.findUnique({
+        where: {
+            razorpayOrderId: data.payload.payment.entity.order_id,
+        },
+        include: {
+            plan: true
+        }
+    });
+
+    if (!order_plan_Data) {
+        throw new InternalServerError("Payment does not exist");
+    }
+
+    const paymentData = await prisma.payment.create({
         data: {
             razorpayPaymentId,
             razorpayOrderId: data.payload.payment.entity.order_id,
@@ -141,5 +108,25 @@ export const verifyPayment = async (data: RazorpayWebhookEvent) => {
 
             paymentCreatedAt: new Date(data.created_at * 1000)
         }
-    })
+    });
+
+
+    return prisma.subscription.upsert({
+        where: {
+            userId: order_plan_Data.userId
+        },
+        create: {
+            userId: order_plan_Data.userId,
+            planId: order_plan_Data.planId,
+            orderId: order_plan_Data.id,
+            status: "ACTIVE",
+            endDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day (fixed)
+        },
+        update: {
+            planId: order_plan_Data.planId,
+            orderId: order_plan_Data.id,
+            status: "ACTIVE",
+            endDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        }
+    });
 }

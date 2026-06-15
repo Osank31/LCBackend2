@@ -10,11 +10,11 @@ export const dbConnect = async() => {
     catch(error: any){
         if (error instanceof Error){
 
-            logger.error("Problem Service db connectuion failed", error.message);
+            logger.error("Problem Service db connection failed", error);
             process.exit(1)
         }
         else{
-            logger.error("Problem Service db connectuion failed unkown", error.message);
+            logger.error("Problem Service db connection failed unkown", error.message);
         }
     }
 
