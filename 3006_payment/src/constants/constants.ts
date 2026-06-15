@@ -12,3 +12,4 @@ export const APP_PORT = getEnvVariable("PORT");
 export const NEON_DB_URL = getEnvVariable("NEON_DB_URL");
 export const RAZORPAY_KEY_ID = getEnvVariable("RAZORPAY_KEY_ID");
 export const RAZORPAY_KEY_SECRET = getEnvVariable("RAZORPAY_KEY_SECRET");
+export const AUTH_URL = getEnvVariable("AUTH_URL")

@@ -1,8 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import * as ProfileService from "../service/profile.service"
 import {sendSuccess} from "../utils/Response";
-import {BadRequestError} from "../utils/errors/AppError";
-import User from "../models/user.model";
+import {BadRequestError, NotFoundError} from "../utils/errors/AppError";
 
 export const getPresignedUrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -32,10 +31,13 @@ export const updateUserRole = async (
     try {
         const {userId, userRole, roleExpiry} = req.body as UpdateUserRoleBody
 
-        const data = await ProfileService.updateUserRole({userId, userRole, roleExpiry})
+        const user = await ProfileService.updateUserRole({userId, userRole, roleExpiry})
 
-        sendSuccess(res, data, "User updated successfully");
+        if(!user) {
+            throw new NotFoundError("User does not exist");
+        }
 
+        sendSuccess(res, user, "User updated successfully");
     } catch (e) {
         next(e);
     }

@@ -3,6 +3,8 @@ import {Orders} from "razorpay/dist/types/orders";
 import {InternalServerError} from "../utils/errors/AppError";
 import {RazorpayWebhookEvent} from "../controllers/payment.controller";
 import {prisma} from "../config/db.condfig";
+import axios from "axios";
+import {AUTH_URL} from "../constants/constants"
 
 
 export interface OrderOptions {
@@ -58,6 +60,10 @@ export const paymentWebhookCapture = async (data: RazorpayWebhookEvent) => {
         throw new InternalServerError("Payment does not exist");
     }
 
+    if (data.event !== "payment.captured") {
+        return;
+    }
+
     const razorpayPaymentId = data.payload.payment.entity.id
 
     const isExist = await prisma.payment.findUnique({
@@ -69,6 +75,17 @@ export const paymentWebhookCapture = async (data: RazorpayWebhookEvent) => {
     if (isExist) {
         return
     }
+
+    await prisma.order.update({
+        where: {
+            razorpayOrderId: data.payload.payment.entity.order_id
+        },
+        data: {
+            razorpayPaymentId,
+            status: "PAID",
+            paidAt: new Date()
+        }
+    });
 
 
     const order_plan_Data = await prisma.order.findUnique({
@@ -84,7 +101,7 @@ export const paymentWebhookCapture = async (data: RazorpayWebhookEvent) => {
         throw new InternalServerError("Payment does not exist");
     }
 
-    const paymentData = await prisma.payment.create({
+    await prisma.payment.create({
         data: {
             razorpayPaymentId,
             razorpayOrderId: data.payload.payment.entity.order_id,
@@ -110,8 +127,23 @@ export const paymentWebhookCapture = async (data: RazorpayWebhookEvent) => {
         }
     });
 
+    const currentSubscription = await prisma.subscription.findUnique({
+        where: {
+            userId: order_plan_Data.userId
+        }
+    });
 
-    return prisma.subscription.upsert({
+    const baseDate =
+        currentSubscription && currentSubscription.endDate &&
+        currentSubscription.endDate > new Date()
+            ? currentSubscription.endDate
+            : new Date();
+
+    const endDate = new Date(
+        baseDate.getTime() + 24 * 60 * 60 * 1000
+    );
+
+    const subscription = await prisma.subscription.upsert({
         where: {
             userId: order_plan_Data.userId
         },
@@ -120,13 +152,19 @@ export const paymentWebhookCapture = async (data: RazorpayWebhookEvent) => {
             planId: order_plan_Data.planId,
             orderId: order_plan_Data.id,
             status: "ACTIVE",
-            endDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day (fixed)
+            endDate
         },
         update: {
             planId: order_plan_Data.planId,
             orderId: order_plan_Data.id,
             status: "ACTIVE",
-            endDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            endDate
         }
+    });
+
+    await axios.put(`${AUTH_URL}/updateRole`, {
+        userId: order_plan_Data.userId,
+        userRole: "PREMIUM",
+        roleExpiry: subscription.endDate
     });
 }

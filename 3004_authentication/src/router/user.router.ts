@@ -11,7 +11,7 @@ router.post("/forgot-password", forgetPassword)
 router.put("/forgot-password-verify-otp", forgotPasswordVerifyOtp)
 router.put("/reset-password", resetPassword)
 router.post("/reload-token", reloadToken)
-router.post("/updateRole", updateUserRole)
+router.put("/updateRole", updateUserRole)
 router.post("/logout", logout)
 
 

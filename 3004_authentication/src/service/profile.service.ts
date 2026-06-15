@@ -30,14 +30,8 @@ export const getPresignedUrl = async ({ mimeType }: { mimeType: string }) => {
 };
 
 export const updateUserRole = async (data: UpdateUserRoleBody)=> {
-    const user = await User.findByIdAndUpdate(data.userId, {
+    return User.findByIdAndUpdate(data.userId, {
         userType: data.userRole,
         roleExpiry: data.roleExpiry
     });
-
-    if (!user) {
-        throw new NotFoundError("User does not exist");
-    }
-
-    return user;
 }
