@@ -18,6 +18,7 @@ interface IUser extends Document {
     password: string;
     profilePicUrl?: string;
     userType: UserType;
+    roleExpiry: Date | null;
     resetPasswordToken: string;
     resetTokenExpiry: string;
     createdAt: Date;
@@ -59,6 +60,10 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
             enum: Object.values(UserType),
             default: UserType.Regular,
             required: true,
+        },
+        roleExpiry: {
+            type: Date,
+            default: null,
         },
         resetPasswordToken: {
             type: String,

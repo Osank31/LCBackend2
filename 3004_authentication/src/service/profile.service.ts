@@ -2,6 +2,9 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY } from "../constants/constants";
 import crypto from "crypto";
+import {UpdateUserRoleBody} from "../controllers/profile.contoroller";
+import User from "../models/user.model";
+import {NotFoundError} from "../utils/errors/AppError";
 
 const s3Client = new S3Client({
     region: "ap-south-1",
@@ -25,3 +28,16 @@ export const getPresignedUrl = async ({ mimeType }: { mimeType: string }) => {
     const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
     return { url, key };
 };
+
+export const updateUserRole = async (data: UpdateUserRoleBody)=> {
+    const user = await User.findByIdAndUpdate(data.userId, {
+        userType: data.userRole,
+        roleExpiry: data.roleExpiry
+    });
+
+    if (!user) {
+        throw new NotFoundError("User does not exist");
+    }
+
+    return user;
+}

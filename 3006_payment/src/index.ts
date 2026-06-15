@@ -8,6 +8,7 @@ import {
 import logger from "./config/logger.config";
 import cors from "cors";
 import paymentRouter from "./routes/payment.route";
+import planRouter from "./routes/plans.route";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(
 );
 
 app.use(paymentRouter);
+app.use(planRouter)
 
 app.use(appErrorHandler);
 app.use(genericErrorHandler);

@@ -1,34 +1,84 @@
 import {Request, Response, NextFunction} from "express";
 import {OrderOptions} from "../services/payment.service";
 import {NotFoundError} from "../utils/errors/AppError";
-// import {sendSuccess} from "../utils/Response";
-// import crypto from "crypto";
 import * as PaymentService from "../services/payment.service"
-import {sendSuccess} from "../utils/Response";
+import * as PlanService from "../services/plans.service"
+import crypto from "crypto";
+import {sendError, sendSuccess} from "../utils/Response";
 
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
         console.log("order created");
         const options: OrderOptions = {
-            amount: req.body.amount,
+            planId: req.body.planId,
             currency: req.body.currency || ("INR"),
             payment_capture: 1,
             receipt: `ORDER_${Date.now()}`,
         };
 
-        if (!req.user?.userId) {
+        const userId = req.user?.userId
+
+        if (!userId) {
 			throw new NotFoundError("User does not exist");
 		}
 
-        const data = await PaymentService.createOrder(options);
+        const plan = await PlanService.getPlanById(options.planId)
+
+        if (!plan) {
+            throw new NotFoundError("Plans already exist");
+        }
+
+        const data = await PaymentService.createOrder({
+            amount: plan.amount,
+            currency: req.body.currency || ("INR"),
+            payment_capture: true,
+            receipt: `ORDER_${Date.now()}`,
+        }, userId, options.planId);
 
         sendSuccess(res, data, "Payment Generated Successfully");
-
     } catch (e) {
         next(e);
     }
 }
+
+
+export const paymentCapture = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        } = req.body;
+
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            throw new NotFoundError("User not found");
+        }
+
+        // 1. Create signature
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+            .update(body)
+            .digest("hex");
+
+        // 2. Compare signatures
+        const isValid = expectedSignature === razorpay_signature;
+
+        if (!isValid) {
+            return sendError(res, "Signature unidentified")
+        }
+
+        await PaymentService.paymentCapture(razorpay_order_id, razorpay_payment_id);
+
+        return sendSuccess(res, "Payment Captured Successfully");
+    } catch (e) {
+        next(e);
+    }
+};
 
 export interface RazorpayWebhookEvent {
     entity: "event";
@@ -72,12 +122,12 @@ export interface RazorpayPaymentEntity {
     created_at: number;
 }
 
-export const paymentCapture = async (req: Request, res: Response, next: NextFunction) => {
+export const paymentWebhookCapture = async (req: Request, res: Response, next: NextFunction) => {
     try{
         console.log("payment capture");
         const data = req.body as RazorpayWebhookEvent;
 
-        await PaymentService.verifyPayment(data)
+        await PaymentService.paymentWebhookCapture(data);
 
         sendSuccess(res, null, "Payment Captured Successfully", 200);
     } catch (e) {
