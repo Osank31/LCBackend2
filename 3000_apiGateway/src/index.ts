@@ -29,6 +29,8 @@ const authProxy = proxy(AUTH_SERVICE_URL, {
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
             proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
+            proxyReqOpts.headers["x-user-role"] = JSON.stringify(srcReq.user?.userRole)
+
         }
         return proxyReqOpts
     },
@@ -52,6 +54,7 @@ const problemProxy = proxy(PROBLEM_SERVICE_URL, {
     
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
+            proxyReqOpts.headers["x-user-role"] = JSON.stringify(srcReq.user?.userRole)
             proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
         }
         return proxyReqOpts
@@ -75,6 +78,7 @@ const submissionProxy = proxy(SUBMISSION_SERVICE_URL, {
     },
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
+            proxyReqOpts.headers["x-user-role"] = JSON.stringify(srcReq.user?.userRole)
             proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
         }
         return proxyReqOpts
@@ -99,6 +103,7 @@ const paymentProxy = proxy(PAYMENT_SERVICE_URL, {
     },
     proxyReqOptDecorator(proxyReqOpts, srcReq: any) {
         if (srcReq.user) {
+            proxyReqOpts.headers["x-user-role"] = JSON.stringify(srcReq.user?.userRole)
             proxyReqOpts.headers["x-user-id"] = JSON.stringify(srcReq.user?.userId)
         }
         return proxyReqOpts

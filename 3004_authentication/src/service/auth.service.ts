@@ -21,6 +21,7 @@ export interface IAccessToken {
     email: string;
     name: string;
     userId: mongoose.Types.ObjectId;
+    userRole: string
 }
 
 export interface ILogoutData {
@@ -90,7 +91,7 @@ export const signUp = async (data: (RegisterUserInput & { otp: string })) => {
     });
 
     const payload: IAccessToken = {
-        email, name, userId: newUser._id
+        email, name, userId: newUser._id, userRole: newUser.userType
     }
 
     const accessToken = jwt.sign(payload, ACCESS_TOKEN_JWT_KEY, { expiresIn: "15min" })
@@ -130,7 +131,8 @@ export const login = async (data: LoginUserInput) => {
     const payload: IAccessToken = {
         email,
         name: user.name,
-        userId: user._id
+        userId: user._id,
+        userRole: user.userType
     }
 
     const accessToken = jwt.sign(payload, ACCESS_TOKEN_JWT_KEY, { expiresIn: "15min" })
@@ -177,7 +179,8 @@ export const reloadToken = async (data: IReloadToken) => {
     const payload = {
         email: user.email,
         name: user.name,
-        userId: user._id
+        userId: user._id,
+        userRole: user.userType
     }
 
     const accessToken = jwt.sign(payload, ACCESS_TOKEN_JWT_KEY, {
