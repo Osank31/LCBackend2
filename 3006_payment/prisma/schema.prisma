@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========================
+// ENUMS
+// ========================
+
+enum OrderStatus {
+  CREATED
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PlanInterval {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+// ========================
+// PLAN
+// ========================
+
+model Plan {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+
+  amount   Int
+  currency String @default("INR")
+
+  interval      PlanInterval @default(MONTHLY)
+  intervalCount Int          @default(1)
+
+  // optional mapping for MongoDB user role system
+  role String?
+
+  isActive Boolean @default(true)
+
+  orders        Order[]
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ========================
+// ORDER (Razorpay bridge)
+// ========================
+
+model Order {
+  id String @id @default(cuid())
+
+  // MongoDB user reference
+  userId String
+
+  // Plan relation
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  // Razorpay identifiers
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String? @unique
+
+  // payment details
+  amount   Int
+  currency String @default("INR")
+
+  status OrderStatus @default(CREATED)
+
+  receipt      String?
+  attemptCount Int     @default(0)
+
+  paidAt DateTime?
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+// ========================
+// SUBSCRIPTION (source of truth for access)
+// ========================
+
+model Subscription {
+  id String @id @default(cuid())
+
+  // MongoDB user reference
+  userId String @unique
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  status SubscriptionStatus @default(ACTIVE)
+
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ========================
+// PAYMENT (audit log of Razorpay)
+// ========================
+
+model Payment {
+  id String @id @default(cuid())
+
+  razorpayPaymentId String  @unique
+  razorpayOrderId   String
+  razorpayInvoiceId String?
+
+  amount   Int
+  currency String
+  status   String
+
+  captured Boolean
+
+  method        String?
+  international Boolean?
+
+  amountRefunded Int?
+  refundStatus   String?
+
+  email   String?
+  contact String?
+
+  description String?
+  notes       Json?
+
+  paymentCreatedAt DateTime
+
+  createdAt DateTime @default(now())
+}
