@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createEvaluation, updateSubmission } from "../controller/submission.controller";
-import { userValidation } from "../middleware/user.validation";
+import { createEvaluation, updateSubmission } from "../controller/submission.controller.js";
+import { userValidation } from "../middleware/user.validation.js";
 
 const router = Router()
 

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import logger from "./logger.config";
-import { MONGODB_URL } from "../constants/constants";
+import logger from "./logger.config.js";
+import { MONGODB_URL } from "../constants/constants.js";
 
 export const dbConnect = async() => {
     try{

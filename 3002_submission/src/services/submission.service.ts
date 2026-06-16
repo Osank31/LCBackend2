@@ -1,10 +1,10 @@
-import { CreateSubmissionInput, UpdateSubmissionInput } from "../validations/submission.validation";
-import {channel, queue} from "../config/rabbitMQ.config"
-import { BadRequestError, InternalServerError, NotFoundError } from "../utils/errors/AppError";
+import { CreateSubmissionInput, UpdateSubmissionInput } from "../validations/submission.validation.js";
+import {channel, queue} from "../config/rabbitMQ.config.js"
+import { BadRequestError, InternalServerError, NotFoundError } from "../utils/errors/AppError.js";
 import axios from "axios";
-import { PROBLEM_SERVICE_URL } from "../constants/constants";
+import { PROBLEM_SERVICE_URL } from "../constants/constants.js";
 import mongoose from "mongoose";
-import Submission, { ESubmissionStatus } from "../models/submission.model";
+import Submission, { ESubmissionStatus } from "../models/submission.model.js";
 
 export const evaluationService = async (data: CreateSubmissionInput & {userId: string}) => {
     const {problemId, code, language, status, userId} = data

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ELanguage, ESubmissionStatus } from "../models/submission.model";
+import { ELanguage, ESubmissionStatus } from "../models/submission.model.js";
 
 // Create Submission Validation
 export const createSubmissionSchema = z.object({

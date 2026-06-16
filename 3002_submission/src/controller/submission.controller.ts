@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { createSubmissionSchema, updateSubmissionSchema } from "../validations/submission.validation";
-import { sendSuccess } from "../utils/Response";
-import * as SubmissionService from "../services/submission.service";
-import { BadRequestError, UnauthorizedError } from "../utils/errors/AppError";
+import { createSubmissionSchema, updateSubmissionSchema } from "../validations/submission.validation.js";
+import { sendSuccess } from "../utils/Response.js";
+import * as SubmissionService from "../services/submission.service.js";
+import { BadRequestError, UnauthorizedError } from "../utils/errors/AppError.js";
 
 export const createEvaluation = async (req: Request, res: Response, next: NextFunction) => {
     try {
