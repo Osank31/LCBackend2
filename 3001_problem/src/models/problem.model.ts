@@ -1,5 +1,5 @@
 import mongoose, { Document } from "mongoose";
-import { createEmbedding } from "../utils/openai.embedding";
+import { createEmbedding } from "../utils/openai.embedding.js";
 
 export interface ITestCase {
     input: string;

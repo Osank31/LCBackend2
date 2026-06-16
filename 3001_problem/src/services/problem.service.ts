@@ -1,14 +1,14 @@
 // services/problem.service.ts
 
 import mongoose from "mongoose";
-import Problem from "../models/problem.model";
+import Problem from "../models/problem.model.js";
 import {
     BadRequestError,
     NotFoundError,
     NotImplementedError,
-} from "../utils/errors/AppError";
-import { createProblemType } from "../validations/problem.validation";
-import { createEmbedding } from "../utils/openai.embedding";
+} from "../utils/errors/AppError.js";
+import { createProblemType } from "../validations/problem.validation.js";
+import { createEmbedding } from "../utils/openai.embedding.js";
 
 export const createProblemService = async (data: createProblemType) => {
     return await Problem.create(data);

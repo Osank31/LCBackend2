@@ -1,10 +1,10 @@
 import express from "express"
 import "dotenv/config"
-import { APP_PORT } from "./constants/constants"
-import { appErrorHandler, genericErrorHandler } from "./middleware/errorHandler"
-import logger from "./config/logger.config"
-import { dbConnect } from "./config/db.config"
-import problemRouter from "./routers/problem.router"
+import { APP_PORT } from "./constants/constants.js"
+import { appErrorHandler, genericErrorHandler } from "./middleware/errorHandler.js"
+import logger from "./config/logger.config.js"
+import { dbConnect } from "./config/db.config.js"
+import problemRouter from "./routers/problem.router.js"
 
 const app = express()
 

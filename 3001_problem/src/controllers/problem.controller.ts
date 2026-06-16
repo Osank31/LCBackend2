@@ -4,9 +4,9 @@ import { NextFunction, Request, Response } from "express";
 import {
     createProblemSchema,
     updateProblemSchema,
-} from "../validations/problem.validation";
-import logger from "../config/logger.config";
-import { sendSuccess } from "../utils/Response";
+} from "../validations/problem.validation.js";
+import logger from "../config/logger.config.js";
+import { sendSuccess } from "../utils/Response.js";
 
 import {
     createProblemService,
@@ -15,7 +15,7 @@ import {
     getSingleProblemService,
     searchProblemsService,
     updateProblemService,
-} from "../services/problem.service";
+} from "../services/problem.service.js";
 
 export const createProblem = async (
     req: Request,
