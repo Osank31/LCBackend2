@@ -7,6 +7,9 @@
 
     "types": ["node"],
 
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
     "strict": true,
     "esModuleInterop": true,
 

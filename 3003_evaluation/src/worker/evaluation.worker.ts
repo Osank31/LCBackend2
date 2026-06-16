@@ -1,16 +1,16 @@
 import { ConsumeMessage } from "amqplib";
 import axios from "axios";
-import { SUBMISSION_SERVICE_URL } from "../constants/constants";
+import { SUBMISSION_SERVICE_URL } from "../constants/constants.js";
 
-import logger from "../config/logger.config";
-import { channel, queue } from "../config/rabbitMQ.config";
-import { runCode } from "../config/docker.config";
+import logger from "../config/logger.config.js";
+import { channel, queue } from "../config/rabbitMQ.config.js";
+import { runCode } from "../config/docker.config.js";
 
 import {
     ELanguage,
     ESubmissionStatus,
     IEvaluationData,
-} from "../types/evaluation.type";
+} from "../types/evaluation.type.js";
 
 type Language = "python" | "cpp" | "java";
 

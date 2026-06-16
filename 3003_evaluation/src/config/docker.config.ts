@@ -1,6 +1,6 @@
 import Docker from "dockerode";
 import tar from "tar-stream";
-import logger from "./logger.config";
+import logger from "./logger.config.js";
 
 const docker = new Docker();
 

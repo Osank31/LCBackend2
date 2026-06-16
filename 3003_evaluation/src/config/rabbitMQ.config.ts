@@ -1,5 +1,5 @@
 import amqplib, { Channel } from "amqplib";
-import logger from "./logger.config";
+import logger from "./logger.config.js";
 
 export interface QueueConnection {
     channel: Channel;
