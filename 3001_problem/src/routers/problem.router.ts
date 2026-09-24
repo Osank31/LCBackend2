@@ -5,7 +5,6 @@ const router = Router()
 
 router.post("/", createProblem)
 router.get("/", getAllProblems)
-router.get("/search", searchProblems)
 router.get("/:id", getSingleProblem)
 router.put("/:id", updateProblem)
 router.delete("/:id", deleteProblem)

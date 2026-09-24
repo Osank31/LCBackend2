@@ -1,0 +1,23 @@
+{
+  "name": "leetcode-microservices-platform",
+  "version": "1.0.0",
+  "description": "Distributed Online Judge & LeetCode Clone Microservices Ecosystem",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix 3000_apiGateway && npm install --prefix 3001_problem && npm install --prefix 3002_submission && npm install --prefix 3003_evaluation && npm install --prefix 3004_authentication && npm install --prefix 3005_mail && npm install --prefix 3006_payment && npm install --prefix 3007_sockets && npm install --prefix frontend",
+    "prisma:push": "npm --prefix 3006_payment exec prisma db push",
+    "dev:gateway": "npm --prefix 3000_apiGateway run dev",
+    "dev:problem": "npm --prefix 3001_problem run dev",
+    "dev:submission": "npm --prefix 3002_submission run dev",
+    "dev:evaluation": "npm --prefix 3003_evaluation run dev",
+    "dev:auth": "npm --prefix 3004_authentication run dev",
+    "dev:mail": "npm --prefix 3005_mail run dev",
+    "dev:payment": "npm --prefix 3006_payment run dev",
+    "dev:sockets": "npm --prefix 3007_sockets run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:all": "concurrently -n \"GATEWAY,AUTH,PROBLEM,SUBMISSION,EVAL,MAIL,PAYMENT,SOCKETS,FRONTEND\" -c \"cyan,blue,green,yellow,magenta,red,blueBright,greenBright,yellowBright\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:problem\" \"npm:dev:submission\" \"npm:dev:evaluation\" \"npm:dev:mail\" \"npm:dev:payment\" \"npm:dev:sockets\" \"npm:dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
